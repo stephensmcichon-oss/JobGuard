@@ -136,7 +136,7 @@ export default function Dashboard() {
               <div className={styles.activityIcon}>⏱️</div>
               <div className={styles.activityContent}>
                 <div className={styles.activityText}>
-                  <strong>You logged 2h 15m</strong> on "API Auth refactoring"
+                  <strong>You logged 2h 15m</strong> on &quot;API Auth refactoring&quot;
                 </div>
                 <div className={styles.activityMeta}>Core Infrastructure • 24 mins ago</div>
               </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
               <div className={styles.activityIcon}>🔄</div>
               <div className={styles.activityContent}>
                 <div className={styles.activityText}>
-                  <strong>Status Change:</strong> "Mobile Redesign" moved to <span style={{color: '#b08d00', fontWeight: 600}}>Review</span>
+                  <strong>Status Change:</strong> &quot;Mobile Redesign&quot; moved to <span style={{color: '#b08d00', fontWeight: 600}}>Review</span>
                 </div>
                 <div className={styles.activityMeta}>User Feedback • 2 hours ago</div>
               </div>
@@ -158,7 +158,7 @@ export default function Dashboard() {
               <div className={styles.activityIcon}>⏱️</div>
               <div className={styles.activityContent}>
                 <div className={styles.activityText}>
-                  <strong>You logged 45m</strong> on "Internal Admin Sprint Planning"
+                  <strong>You logged 45m</strong> on &quot;Internal Admin Sprint Planning&quot;
                 </div>
                 <div className={styles.activityMeta}>Ops/Admin • 5 hours ago</div>
               </div>
