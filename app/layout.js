@@ -1,6 +1,4 @@
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
 import { TaskProvider } from '@/context/TaskContext';
 import ClientLayout from '@/components/ClientLayout';
 
