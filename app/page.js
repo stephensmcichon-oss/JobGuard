@@ -1,66 +1,112 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+import { useTaskContext } from '@/context/TaskContext';
+import styles from './TaskList.module.css';
+import TaskRow from '@/components/TaskRow';
 
 export default function Home() {
+  const { tasks, activeTrackingId, isTracking, stopTracking, pauseTracking } = useTaskContext();
+
+  const tasksToDo = tasks.filter(t => t.status === 'TO DO');
+  const tasksInProgress = tasks.filter(t => t.status === 'IN PROGRESS');
+  const tasksReview = tasks.filter(t => t.status === 'REVIEW');
+
+  const activeTask = tasks.find(t => t.id === activeTrackingId);
+
+  const formatTime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className={styles.container}>
+      <div className={styles.controls}>
+        <div className={styles.viewTabs}>
+          <div className={`${styles.tab} ${styles.active}`}>
+            <span>🔠</span> List
+          </div>
+          <div className={styles.tab}>
+            <span>📋</span> Board
+          </div>
+          <div className={styles.tab}>
+            <span>📅</span> Calendar
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className={styles.tab}>
+            <span>🔍</span> Filter
+          </div>
+          <div className={styles.tab}>
+            <span>⇅</span> Sort
+          </div>
         </div>
-      </main>
+      </div>
+
+      <div className={styles.tableHeader}>
+        <div>TASK NAME</div>
+        <div>ASSIGNEE</div>
+        <div>DUE DATE</div>
+        <div>PRIORITY</div>
+        <div>TIME LOGGED</div>
+      </div>
+
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.collapseIcon}>▼</span>
+          <span className={styles.statusLabel}>TO DO</span>
+          <span className={styles.taskCount}>{tasksToDo.length} Tasks</span>
+        </div>
+        <div>
+          {tasksToDo.map((task) => (
+            <TaskRow key={task.id} task={task} />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.collapseIcon}>▼</span>
+          <span className={`${styles.statusLabel} ${styles.inProgress}`}>IN PROGRESS</span>
+          <span className={styles.taskCount}>{tasksInProgress.length} Task{tasksInProgress.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div>
+          {tasksInProgress.map((task) => (
+            <TaskRow key={task.id} task={task} activeTracking={activeTrackingId === task.id && isTracking} />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.collapseIcon}>▼</span>
+          <span className={`${styles.statusLabel} ${styles.review}`}>REVIEW</span>
+          <span className={styles.taskCount}>{tasksReview.length} Task{tasksReview.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div style={{ opacity: 0.6 }}>
+          {tasksReview.map((task) => (
+            <TaskRow key={task.id} task={task} />
+          ))}
+        </div>
+      </div>
+
+      {/* Active Tracker Banner */}
+      {isTracking && activeTask && (
+        <div className={styles.activeTracker}>
+          <div className={styles.trackerLeft}>
+            <div className={styles.trackerDot}></div>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--status-normal-text)' }}>ACTIVE TRACKING</span>
+            <span className={styles.trackerTitle}>{activeTask.name}</span>
+          </div>
+          <div className={styles.trackerRight}>
+            <span className={styles.trackerTime}>{formatTime(activeTask.timeLogged)}</span>
+            <div className={styles.trackerControls}>
+              <button className={`${styles.controlBtn} ${styles.stopBtn}`} onClick={stopTracking}>⏹</button>
+              <button className={`${styles.controlBtn} ${styles.pauseBtn}`} onClick={pauseTracking}>⏸</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
