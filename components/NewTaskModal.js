@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
 import styles from './NewTaskModal.module.css';
 
 export default function NewTaskModal() {
-  const { isNewTaskModalOpen, closeNewTaskModal, addTask } = useTaskContext();
+  const { isNewTaskModalOpen, closeNewTaskModal, addTask, initialColumnStatus } = useTaskContext();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -13,6 +14,12 @@ export default function NewTaskModal() {
     dueDate: '',
     priority: 'NORMAL',
   });
+
+  useEffect(() => {
+    if (isNewTaskModalOpen) {
+      setFormData((prev) => ({ ...prev, status: initialColumnStatus || 'TO DO' }));
+    }
+  }, [isNewTaskModalOpen, initialColumnStatus]);
 
   if (!isNewTaskModalOpen) return null;
 

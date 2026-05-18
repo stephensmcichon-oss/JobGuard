@@ -4,7 +4,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import styles from '../app/TaskList.module.css';
 
 export default function TaskRow({ task, activeTracking }) {
-  const { startTracking, stopTracking } = useTaskContext();
+  const { startTracking, stopTracking, updateTaskStatus, deleteTask } = useTaskContext();
 
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -39,12 +39,33 @@ export default function TaskRow({ task, activeTracking }) {
         <span className={`${styles.timeText} ${activeTracking ? styles.active : ''}`}>
           {formatTime(task.timeLogged)}
         </span>
-        <button 
-          onClick={() => activeTracking ? stopTracking() : startTracking(task.id)}
-          style={{ cursor: 'pointer', padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
-        >
-          {activeTracking ? '⏹' : '▶'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button 
+            onClick={() => activeTracking ? stopTracking() : startTracking(task.id)}
+            style={{ cursor: 'pointer', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: activeTracking ? '#ffe3e3' : 'var(--bg-secondary)', color: activeTracking ? '#c92a2a' : 'inherit' }}
+            title={activeTracking ? "Stop Timer" : "Start Timer"}
+          >
+            {activeTracking ? '⏹' : '▶'}
+          </button>
+          <select 
+            value={task.status} 
+            onChange={(e) => updateTaskStatus(task.id, e.target.value)}
+            style={{ padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', fontSize: '0.75rem', cursor: 'pointer' }}
+          >
+            <option value="BACKLOG">BACKLOG</option>
+            <option value="TO DO">TO DO</option>
+            <option value="IN PROGRESS">IN PROGRESS</option>
+            <option value="REVIEW">REVIEW</option>
+            <option value="DONE">DONE</option>
+          </select>
+          <button 
+            onClick={() => deleteTask(task.id)}
+            style={{ cursor: 'pointer', padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'none', color: 'var(--text-secondary)' }}
+            title="Delete Task"
+          >
+            🗑️
+          </button>
+        </div>
       </div>
     </div>
   );

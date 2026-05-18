@@ -121,6 +121,13 @@ export function TaskProvider({ children }) {
   const [activeTrackingId, setActiveTrackingId] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterPriority, setFilterPriority] = useState('ALL');
+  const [filterAssignee, setFilterAssignee] = useState('ALL');
+  const [sortBy, setSortBy] = useState('DEFAULT');
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState('ALL');
+  const [initialColumnStatus, setInitialColumnStatus] = useState('TO DO');
 
   useEffect(() => {
     const savedTasks = localStorage.getItem('taskflow-tasks');
@@ -190,8 +197,12 @@ export function TaskProvider({ children }) {
     setActiveTrackingId(null);
   };
 
-  const openNewTaskModal = () => setIsNewTaskModalOpen(true);
+  const openNewTaskModal = (status = 'TO DO') => {
+    setInitialColumnStatus(status);
+    setIsNewTaskModalOpen(true);
+  };
   const closeNewTaskModal = () => setIsNewTaskModalOpen(false);
+  const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
 
   return (
     <TaskContext.Provider value={{
@@ -199,6 +210,19 @@ export function TaskProvider({ children }) {
       activeTrackingId,
       isTracking,
       isNewTaskModalOpen,
+      searchQuery,
+      setSearchQuery,
+      filterPriority,
+      setFilterPriority,
+      filterAssignee,
+      setFilterAssignee,
+      sortBy,
+      setSortBy,
+      isNotificationsOpen,
+      toggleNotifications,
+      selectedProject,
+      setSelectedProject,
+      initialColumnStatus,
       addTask,
       updateTaskStatus,
       deleteTask,
