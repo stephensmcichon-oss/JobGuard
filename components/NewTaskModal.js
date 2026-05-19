@@ -79,7 +79,7 @@ export default function NewTaskModal() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="form-control w-full gap-1.5">
             <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-primary" /> Task / Document Name *
+              <FileText className="w-3.5 h-3.5 text-primary" /> Task Name *
             </label>
             <input
               type="text"
