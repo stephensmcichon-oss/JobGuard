@@ -1,14 +1,45 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useTaskContext } from '@/context/TaskContext';
-import { BookOpen, Database, Lock, Server, Cpu, Zap, Sparkles, Code, Terminal, ArrowRight, ExternalLink, Compass, ShieldCheck, HardDrive, RefreshCw } from 'lucide-react';
+import { BookOpen, Database, Lock, Server, Cpu, Zap, Sparkles, Code, Terminal, ArrowRight, ExternalLink, Compass, ShieldCheck, HardDrive, RefreshCw, Send, CheckCircle } from 'lucide-react';
 
 export default function Docs() {
-  const { openNewTaskModal } = useTaskContext();
+  const { openNewTaskModal, employees, addTask } = useTaskContext();
+
+  // Quick Assign Task Form State
+  const [assignName, setAssignName] = useState('');
+  const [assignDesc, setAssignDesc] = useState('');
+  const [assignEmpId, setAssignEmpId] = useState(employees[0]?.id || 'EMP-1');
+  const [assignPriority, setAssignPriority] = useState('URGENT');
+  const [assignDueDate, setAssignDueDate] = useState('Today');
+  const [showAssignSuccess, setShowAssignSuccess] = useState(false);
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleAssignTask = (e) => {
+    e.preventDefault();
+    if (!assignName.trim()) return;
+
+    const targetEmp = employees.find(emp => emp.id === assignEmpId) || employees[0] || { fullName: 'Employee', initials: 'EMP' };
+
+    addTask({
+      name: assignName,
+      description: assignDesc || 'Assigned via Getting Started Guide',
+      assignee: targetEmp.fullName,
+      assigneeInitials: targetEmp.initials,
+      dueDate: assignDueDate,
+      priority: assignPriority,
+      status: 'TO DO'
+    });
+
+    setAssignName('');
+    setAssignDesc('');
+    setShowAssignSuccess(true);
+    setTimeout(() => setShowAssignSuccess(false), 4000);
   };
 
   return (
@@ -30,11 +61,91 @@ export default function Docs() {
         </div>
 
         {/* Getting Started Section */}
-        <section id="getting-started" className="flex flex-col gap-6 scroll-mt-28">
+        <section id="getting-started" className="flex flex-col gap-8 scroll-mt-28">
           <div className="flex flex-col gap-2 border-b border-base-300/80 pb-4">
             <h2 className="font-outfit text-3xl font-black text-base-content tracking-tight">Getting Started</h2>
-            <p className="text-base-content/70 text-base font-medium">Quickly set up your project or use our AI assistant to generate database schemas and serverless functions.</p>
+            <p className="text-base-content/70 text-base font-medium">Quickly set up your project, dispatch tasks to your team, or use our AI assistant to generate database schemas and serverless functions.</p>
           </div>
+
+          {/* Professional Quick Assign Task UI */}
+          <div className="card bg-base-200/90 backdrop-blur-2xl border border-error/30 p-8 rounded-3xl shadow-2xl flex flex-col gap-6 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between border-b border-base-300 pb-4">
+              <div className="flex items-center gap-3 font-outfit font-black text-2xl text-base-content tracking-tight">
+                <span className="w-3.5 h-3.5 rounded-full bg-error animate-pulse flex-shrink-0"></span>
+                Quick Assign Task to Employee
+              </div>
+              <span className="badge badge-error badge-md font-extrabold uppercase tracking-wider py-3 px-4 shadow-sm bg-error/20 text-error border-error/30">Admin Dispatch Tool</span>
+            </div>
+
+            {showAssignSuccess && (
+              <div className="alert alert-success shadow-lg rounded-2xl text-sm font-bold py-4 animate-in fade-in duration-200 flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                <span>Task successfully assigned & dispatched to employee! Check your Kanban board or task list to track progress.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAssignTask} className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+              <div className="form-control w-full md:col-span-2 gap-1.5">
+                <label className="label-text text-xs font-extrabold text-base-content/70 uppercase tracking-wider">Task Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Urgent Security Patch for Auth Endpoint"
+                  value={assignName}
+                  onChange={(e) => setAssignName(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-base focus:border-error h-13 rounded-2xl font-medium shadow-inner"
+                  required
+                />
+              </div>
+
+              <div className="form-control w-full gap-1.5">
+                <label className="label-text text-xs font-extrabold text-base-content/70 uppercase tracking-wider">Assignee</label>
+                <select
+                  value={assignEmpId}
+                  onChange={(e) => setAssignEmpId(e.target.value)}
+                  className="select select-bordered w-full bg-base-100/80 text-base focus:border-error h-13 rounded-2xl font-bold cursor-pointer shadow-inner"
+                >
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.fullName} ({emp.initials})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-control w-full gap-1.5">
+                <label className="label-text text-xs font-extrabold text-base-content/70 uppercase tracking-wider">Priority</label>
+                <select
+                  value={assignPriority}
+                  onChange={(e) => setAssignPriority(e.target.value)}
+                  className="select select-bordered w-full bg-base-100/80 text-base focus:border-error h-13 rounded-2xl font-bold cursor-pointer shadow-inner"
+                >
+                  <option value="URGENT">🚨 URGENT</option>
+                  <option value="HIGH">⚡ HIGH</option>
+                  <option value="NORMAL">📌 NORMAL</option>
+                  <option value="LOW">🌱 LOW</option>
+                </select>
+              </div>
+
+              <div className="form-control w-full gap-1.5">
+                <label className="label-text text-xs font-extrabold text-base-content/70 uppercase tracking-wider">Due Date</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Today"
+                  value={assignDueDate}
+                  onChange={(e) => setAssignDueDate(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-base focus:border-error h-13 rounded-2xl font-medium shadow-inner"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-error h-13 rounded-2xl font-extrabold text-base shadow-xl shadow-error/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer w-full flex items-center justify-center gap-2.5"
+              >
+                <Send className="w-5 h-5" /> Dispatch Task
+              </button>
+            </form>
+          </div>
+
           <div className="card bg-base-200/90 backdrop-blur-2xl border border-base-300 p-8 rounded-3xl shadow-2xl hover:border-primary/60 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] transition-all duration-300 group cursor-pointer" onClick={() => openNewTaskModal('TO DO')}>
             <div className="flex justify-between items-start gap-4 mb-8 border-b border-base-300/80 pb-6">
               <div className="flex items-center gap-4">
