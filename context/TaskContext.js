@@ -10,9 +10,9 @@ const initialTasks = [
     name: 'Implement User Authentication',
     description: 'High priority security module',
     status: 'TO DO',
-    assignee: 'Alex R.',
-    assigneeInitials: 'AR',
-    assignees: [{ initials: 'AR' }],
+    assignee: 'Employee',
+    assigneeInitials: 'EMP',
+    assignees: [{ initials: 'EMP' }],
     dueDate: 'Oct 12, 2023',
     priority: 'URGENT',
     timeLogged: 0
@@ -22,9 +22,9 @@ const initialTasks = [
     name: 'Design System Documentation',
     description: 'Updating component library',
     status: 'TO DO',
-    assignee: 'Sarah J.',
-    assigneeInitials: 'SJ',
-    assignees: [{ initials: 'SJ' }],
+    assignee: 'Employee',
+    assigneeInitials: 'EMP',
+    assignees: [{ initials: 'EMP' }],
     dueDate: 'Oct 14, 2023',
     priority: 'NORMAL',
     timeLogged: 0
@@ -34,9 +34,9 @@ const initialTasks = [
     name: 'Refactor Data Grid Engine',
     description: 'Optimizing rendering speed',
     status: 'IN PROGRESS',
-    assignee: 'Marcus T.',
-    assigneeInitials: 'MT',
-    assignees: [{ initials: 'MT' }],
+    assignee: 'Employee',
+    assigneeInitials: 'EMP',
+    assignees: [{ initials: 'EMP' }],
     dueDate: 'Today',
     priority: 'HIGH',
     timeLogged: 9912
@@ -117,6 +117,7 @@ const initialTasks = [
 
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTrackingId, setActiveTrackingId] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
@@ -141,6 +142,15 @@ export function TaskProvider({ children }) {
       }
     } else {
       setTasks(initialTasks);
+    }
+
+    const savedUser = localStorage.getItem('taskflow-user');
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (e) {
+        setCurrentUser(null);
+      }
     }
 
     const savedTheme = localStorage.getItem('daisyui-theme') || localStorage.getItem('supabase-theme') || 'dark';
@@ -173,6 +183,30 @@ export function TaskProvider({ children }) {
     }
     return () => clearInterval(interval);
   }, [isTracking, activeTrackingId]);
+
+  const login = (username, password) => {
+    if (username === 'admin' && password === 'admin') {
+      const userObj = { username: 'admin', role: 'admin', name: 'Administrator' };
+      setCurrentUser(userObj);
+      localStorage.setItem('taskflow-user', JSON.stringify(userObj));
+      return true;
+    } else if (username === 'employee' && password === 'employee') {
+      const userObj = { username: 'employee', role: 'employee', name: 'Employee Portal' };
+      setCurrentUser(userObj);
+      localStorage.setItem('taskflow-user', JSON.stringify(userObj));
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('taskflow-user');
+    if (isTracking) {
+      setIsTracking(false);
+      setActiveTrackingId(null);
+    }
+  };
 
   const setTheme = (newTheme) => {
     setThemeState(newTheme);
@@ -225,6 +259,9 @@ export function TaskProvider({ children }) {
   return (
     <TaskContext.Provider value={{
       tasks,
+      currentUser,
+      login,
+      logout,
       activeTrackingId,
       isTracking,
       isNewTaskModalOpen,

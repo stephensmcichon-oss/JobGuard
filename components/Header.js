@@ -2,12 +2,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
-import { Search, Timer, Bell, X, AlertTriangle, Square, Sun, Moon, Globe, Command, ExternalLink, Palette, Sparkles } from 'lucide-react';
+import { Search, Timer, Bell, X, AlertTriangle, Square, Sun, Moon, Globe, Command, ExternalLink, Palette, Sparkles, LogOut, ShieldCheck, User } from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { searchQuery, setSearchQuery, isNotificationsOpen, toggleNotifications, tasks, isTracking, startTracking, stopTracking, setIsSearchModalOpen, theme, setTheme } = useTaskContext();
+  const { searchQuery, setSearchQuery, isNotificationsOpen, toggleNotifications, tasks, isTracking, startTracking, stopTracking, setIsSearchModalOpen, theme, setTheme, currentUser, logout } = useTaskContext();
 
   const handleQuickTimer = () => {
     if (isTracking) {
@@ -30,35 +30,48 @@ export default function Header() {
   ];
 
   return (
-    <header className="navbar sticky top-4 mx-6 my-2 rounded-2xl bg-base-100/80 backdrop-blur-2xl border border-base-300/80 shadow-[0_10px_30px_rgba(0,0,0,0.2)] z-40 px-6 min-h-[4.5rem] transition-all duration-300">
+    <header className="navbar sticky top-4 mx-6 my-2 rounded-2xl bg-base-100/80 backdrop-blur-2xl border border-base-300/80 shadow-[0_10px_30px_rgba(0,0,0,0.2)] z-40 px-6 min-h-[4.5rem] transition-all duration-300 font-sans">
       <div className="navbar-start flex items-center gap-6 w-auto">
-        <Link href="/docs" className="flex items-center gap-3 group cursor-pointer">
+        <Link href="/" className="flex items-center gap-3 group cursor-pointer">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-primary-content font-black text-base shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
             S
           </div>
           <div className="flex flex-col">
-            <span className="font-outfit font-black text-xl tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">Supabase</span>
+            <span className="font-outfit font-black text-xl tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">TaskFlow</span>
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-base-content/60 -mt-1">Enterprise</span>
           </div>
-          <span className="badge badge-primary badge-sm font-bold shadow-sm ml-1 group-hover:animate-pulse">Docs</span>
         </Link>
+
+        {currentUser && (
+          <div className="hidden sm:flex items-center gap-2 bg-base-200/80 border border-base-300 px-3 py-1.5 rounded-xl shadow-inner">
+            {currentUser.role === 'admin' ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-error animate-pulse" />
+                <span className="text-xs font-black text-base-content tracking-tight">👑 Admin Mode</span>
+              </>
+            ) : (
+              <>
+                <User className="w-4 h-4 text-info animate-pulse" />
+                <span className="text-xs font-black text-base-content tracking-tight">💼 Employee Portal</span>
+              </>
+            )}
+          </div>
+        )}
 
         <nav className="hidden md:flex items-center gap-1.5 text-sm font-medium ml-2">
           <Link href="/docs" className={`btn btn-ghost btn-sm font-medium hover:bg-base-200/60 rounded-lg transition-all ${pathname === '/docs' ? 'bg-primary/10 text-primary font-bold shadow-sm border border-primary/20' : 'text-base-content/70'}`}>Guides</Link>
           <Link href="/docs" className="btn btn-ghost btn-sm font-medium hover:bg-base-200/60 rounded-lg text-base-content/70 transition-all">Reference</Link>
-          <Link href="/docs" className="btn btn-ghost btn-sm font-medium hover:bg-base-200/60 rounded-lg text-base-content/70 transition-all">Architecture</Link>
-          <Link href="https://supabase.com/changelog" target="_blank" className="btn btn-ghost btn-sm font-medium hover:bg-base-200/60 rounded-lg text-base-content/70 flex items-center gap-1 transition-all">Changelog <ExternalLink className="w-3 h-3 text-base-content/40" /></Link>
         </nav>
       </div>
 
-      <div className="navbar-center flex-1 max-w-lg mx-8">
+      <div className="navbar-center flex-1 max-w-lg mx-8 hidden lg:flex">
         <button
           onClick={() => setIsSearchModalOpen(true)}
           className="btn btn-outline border-base-300/80 bg-base-200/50 hover:bg-base-200 hover:border-primary/40 text-base-content/70 hover:text-base-content btn-sm w-full h-10 px-4.5 flex items-center justify-between font-normal shadow-inner rounded-xl cursor-pointer group transition-all duration-300"
         >
           <span className="flex items-center gap-3">
             <Search className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" />
-            <span className="text-sm">Search enterprise docs, guides, & schemas...</span>
+            <span className="text-sm">Search enterprise tasks, docs, & guides...</span>
           </span>
           <span className="flex items-center gap-1.5 bg-base-100 border border-base-300/80 px-2.5 py-1 rounded-lg text-[11px] font-bold text-base-content/70 shadow-sm group-hover:border-primary/30 transition-colors font-mono">
             <Command className="w-3 h-3" /> K
@@ -142,18 +155,17 @@ export default function Header() {
           )}
         </div>
 
-        <Link href="https://github.com/supabase/supabase" target="_blank" title="GitHub" className="btn btn-ghost btn-circle btn-sm h-10 w-10 hover:bg-base-200/60 hidden sm:flex cursor-pointer transition-all duration-300 text-base-content/80 hover:text-base-content">
-          <ExternalLink className="w-4 h-4" />
-        </Link>
-        <Link href="https://twitter.com/supabase" target="_blank" title="Twitter" className="btn btn-ghost btn-circle btn-sm h-10 w-10 hover:bg-base-200/60 hidden sm:flex cursor-pointer transition-all duration-300 text-base-content/80 hover:text-base-content">
-          <Globe className="w-4 h-4" />
-        </Link>
-
         <div className="h-5 w-[1px] bg-base-300 mx-0.5 hidden sm:block"></div>
 
-        <Link href="/" className="btn btn-outline btn-sm h-10 px-4 rounded-xl border-base-300 hover:bg-base-200 hover:border-primary text-base-content font-bold shadow-sm cursor-pointer transition-all duration-300">
-          Dashboard
-        </Link>
+        {/* Sleek Logout Button */}
+        <button 
+          onClick={logout} 
+          className="btn btn-outline btn-sm h-10 px-4 rounded-xl border-base-300 hover:bg-error hover:border-error hover:text-error-content text-base-content font-bold shadow-sm cursor-pointer transition-all duration-300 flex items-center gap-1.5"
+          title="Log Out"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

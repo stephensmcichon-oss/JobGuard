@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
-import { Home, Kanban, BarChart2, FileText, BookOpen, Database, Lock, Server, Zap, Cpu, Sparkles, Code, Settings, Plus, ChevronDown, ChevronRight, Compass, ShieldCheck, ZapIcon } from 'lucide-react';
+import { Home, Kanban, BarChart2, FileText, BookOpen, Database, Lock, Server, Zap, Cpu, Sparkles, Code, Settings, Plus, ChevronDown, ChevronRight, Compass, ShieldCheck, ZapIcon, Users, CheckSquare, Clock } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { openNewTaskModal } = useTaskContext();
+  const { openNewTaskModal, currentUser } = useTaskContext();
 
   const [collapsedSections, setCollapsedSections] = useState({
     products: false,
@@ -29,52 +29,86 @@ export default function Sidebar() {
     }`;
   };
 
+  const isAdmin = currentUser?.role === 'admin';
+
   return (
-    <aside className="w-[260px] h-screen border-r border-base-300/80 flex flex-col bg-base-200/90 backdrop-blur-2xl flex-shrink-0 transition-all duration-300 select-none shadow-[10px_0_30px_rgba(0,0,0,0.1)] z-30">
+    <aside className="w-[260px] h-screen border-r border-base-300/80 flex flex-col bg-base-200/90 backdrop-blur-2xl flex-shrink-0 transition-all duration-300 select-none shadow-[10px_0_30px_rgba(0,0,0,0.1)] z-30 font-sans">
       <div className="h-20 flex items-center justify-between px-6 border-b border-base-300/80 bg-base-100/50 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-primary-content font-black text-xs shadow-md shadow-primary/20">
             S
           </div>
           <div className="flex flex-col">
-            <span className="font-outfit font-black text-sm tracking-tight text-base-content leading-none">Studio Workspace</span>
-            <span className="text-[10px] font-bold text-base-content/60 mt-1">PRODUCTION</span>
+            <span className="font-outfit font-black text-sm tracking-tight text-base-content leading-none">
+              {isAdmin ? 'Admin Studio' : 'Employee Portal'}
+            </span>
+            <span className="text-[10px] font-bold text-base-content/60 mt-1">
+              {isAdmin ? 'GLOBAL DISPATCH' : 'TASK EXECUTION'}
+            </span>
           </div>
         </div>
-        <span className="badge badge-primary badge-xs uppercase font-extrabold tracking-widest shadow-sm py-2 px-2 bg-primary/20 text-primary border-primary/30">
-          PRO
+        <span className={`badge badge-xs uppercase font-extrabold tracking-widest shadow-sm py-2 px-2 ${isAdmin ? 'badge-error bg-error/20 text-error border-error/30' : 'badge-info bg-info/20 text-info border-info/30'}`}>
+          {isAdmin ? 'ADMIN' : 'EMP'}
         </span>
       </div>
 
       <div className="p-4 bg-base-200/40 border-b border-base-300/60">
         <button 
           className="btn btn-primary btn-sm h-10 w-full rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer" 
-          onClick={() => openNewTaskModal('TO DO')}
+          onClick={() => openNewTaskModal(isAdmin ? 'TO DO' : 'IN PROGRESS')}
         >
-          <Plus className="w-4 h-4 stroke-[3]" /> New Task / Doc
+          <Plus className="w-4 h-4 stroke-[3]" /> {isAdmin ? 'Assign New Task' : 'Log Personal Task'}
         </button>
       </div>
 
       <nav className="flex-1 flex flex-col gap-6 px-2 pt-5 overflow-y-auto pb-6 bg-base-200/40">
         <div>
           <div className="menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between">
-            <span>Main Application</span>
+            <span>{isAdmin ? 'Admin Management' : 'My Workspace'}</span>
           </div>
           <div className="flex flex-col gap-1">
             <Link href="/" className={getLinkClass('/')}>
-              <Home className="w-4 h-4" /> Home / Active Tasks
+              <Home className="w-4 h-4" /> {isAdmin ? 'Admin Control Center' : 'My Assigned Tasks'}
             </Link>
             <Link href="/board" className={getLinkClass('/board')}>
-              <Kanban className="w-4 h-4" /> Kanban Board
+              <Kanban className="w-4 h-4" /> {isAdmin ? 'Global Kanban Board' : 'My Kanban Board'}
             </Link>
             <Link href="/dashboard" className={getLinkClass('/dashboard')}>
-              <BarChart2 className="w-4 h-4" /> Analytics Dashboard
+              <BarChart2 className="w-4 h-4" /> {isAdmin ? 'Team Analytics Overview' : 'My Time Stats'}
             </Link>
             <Link href="/docs" className={getLinkClass('/docs')}>
               <FileText className="w-4 h-4" /> Supabase Docs
             </Link>
           </div>
         </div>
+
+        {isAdmin && (
+          <div>
+            <div className="menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between">
+              <span>Team Directory</span>
+            </div>
+            <div className="flex flex-col gap-1 pl-2 pr-2">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold mb-1">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-success"></span> Employee (EMP)
+                </span>
+                <span className="badge badge-sm badge-ghost font-mono">Active</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold mb-1">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-success"></span> Alex R. (AR)
+                </span>
+                <span className="badge badge-sm badge-ghost font-mono">Active</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-warning"></span> Sarah J. (SJ)
+                </span>
+                <span className="badge badge-sm badge-ghost font-mono">Busy</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div>
           <div className="menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between">
@@ -138,52 +172,6 @@ export default function Sidebar() {
               <Link href="/docs" className={getLinkClass('/docs#queues')}>
                 <Server className="w-4 h-4" /> Queues
               </Link>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <button 
-            onClick={() => toggleSection('clientLibs')} 
-            className="w-full menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between hover:text-base-content transition-colors cursor-pointer group"
-          >
-            <span>Client Libraries</span>
-            {collapsedSections.clientLibs ? <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" /> : <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />}
-          </button>
-          {!collapsedSections.clientLibs && (
-            <div className="flex flex-col gap-1 pl-1 animate-in fade-in duration-200">
-              <Link href="/docs" className={getLinkClass('/docs#javascript')}>
-                <span className="w-4 h-4 flex items-center justify-center font-extrabold text-[9px] bg-warning/20 text-warning border border-warning/30 rounded-md">JS</span> JavaScript
-              </Link>
-              <Link href="/docs" className={getLinkClass('/docs#flutter')}>
-                <span className="w-4 h-4 flex items-center justify-center font-extrabold text-[9px] bg-info/20 text-info border border-info/30 rounded-md">FL</span> Flutter
-              </Link>
-              <Link href="/docs" className={getLinkClass('/docs#python')}>
-                <span className="w-4 h-4 flex items-center justify-center font-extrabold text-[9px] bg-secondary/20 text-secondary border border-secondary/30 rounded-md">PY</span> Python
-              </Link>
-              <Link href="/docs" className={getLinkClass('/docs#csharp')}>
-                <span className="w-4 h-4 flex items-center justify-center font-extrabold text-[9px] bg-accent/20 text-accent border border-accent/30 rounded-md">C#</span> C#
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <button 
-            onClick={() => toggleSection('migration')} 
-            className="w-full menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between hover:text-base-content transition-colors cursor-pointer group"
-          >
-            <span>Migration Guides</span>
-            {collapsedSections.migration ? <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" /> : <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />}
-          </button>
-          {!collapsedSections.migration && (
-            <div className="flex flex-col gap-1 pl-1 animate-in fade-in duration-200 font-medium">
-              <Link href="/docs" className={getLinkClass('/docs#migration-rds')}>Amazon RDS</Link>
-              <Link href="/docs" className={getLinkClass('/docs#migration-auth0')}>Auth0</Link>
-              <Link href="/docs" className={getLinkClass('/docs#migration-firebase')}>Firebase</Link>
-              <Link href="/docs" className={getLinkClass('/docs#migration-heroku')}>Heroku</Link>
-              <Link href="/docs" className={getLinkClass('/docs#migration-neon')}>Neon</Link>
-              <Link href="/docs" className={getLinkClass('/docs#migration-vercel')}>Vercel Postgres</Link>
             </div>
           )}
         </div>
