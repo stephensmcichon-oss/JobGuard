@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
-import styles from './Dashboard.module.css';
 import Badge from '@/components/Badge';
+import { Timer, Download, CheckCircle, Calendar, Clock, RefreshCw, FileText, Sparkles } from 'lucide-react';
 
 export default function Dashboard() {
   const { tasks, selectedProject, setSelectedProject, openNewTaskModal } = useTaskContext();
@@ -45,48 +45,94 @@ export default function Dashboard() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1 className={styles.title}>Personal Dashboard</h1>
-          <p className={styles.subtitle}>Welcome back. You have {upcomingDeadlines} deadlines approaching in the next 48 hours.</p>
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto flex flex-col gap-8 animate-in fade-in duration-300 font-sans">
+      <div className="flex flex-col gap-4 border-b border-base-300 pb-6">
+        <div className="flex items-center gap-2 text-xs font-bold text-base-content/60 uppercase tracking-wider">
+          <span>Enterprise Workspace</span>
+          <span>/</span>
+          <span className="text-primary font-extrabold">Analytics & Dashboard</span>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={() => openNewTaskModal('IN PROGRESS')} style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--accent-black)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
-            ⏱️ Log Time
-          </button>
-          <button onClick={handleExport} style={{ padding: '0.5rem 1rem', backgroundColor: 'white', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
-            📥 Export Data
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-outfit text-4xl font-black text-base-content tracking-tight flex items-center gap-3">
+              Analytics & Dashboard <span className="badge badge-primary badge-lg font-extrabold shadow-sm py-1.5 px-3 bg-primary/20 text-primary border border-primary/30">Live</span>
+            </h1>
+            <p className="text-base-content/70 text-base font-medium">Welcome back. You have <span className="font-bold text-primary">{upcomingDeadlines}</span> deadlines approaching in the next 48 hours.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => openNewTaskModal('IN PROGRESS')} 
+              className="btn btn-primary btn-sm h-11 px-5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+            >
+              <Timer className="w-4 h-4" /> Log Time / Doc
+            </button>
+            <button 
+              onClick={handleExport} 
+              className="btn btn-outline btn-sm h-11 px-5 rounded-xl font-bold border-base-300 shadow-sm hover:bg-base-200 cursor-pointer flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" /> Export Data
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Total Time Tracked This Week</h2>
-            <div className={styles.legend}>
-              <div className={styles.legendItem}>
-                <div className={styles.dot} style={{backgroundColor: 'var(--accent-black)'}}></div>
+      {/* Spectacular Executive Stats Overview */}
+      <div className="stats stats-vertical lg:stats-horizontal shadow-2xl bg-base-200/90 backdrop-blur-2xl border border-base-300 w-full rounded-3xl overflow-hidden p-2">
+        <div className="stat p-6 flex flex-col justify-center">
+          <div className="stat-figure text-primary p-4 bg-primary/10 rounded-2xl border border-primary/20 shadow-sm">
+            <Clock className="w-8 h-8" />
+          </div>
+          <div className="stat-title text-base-content/60 font-extrabold uppercase text-xs tracking-widest mb-1">Total Time Tracked</div>
+          <div className="stat-value font-outfit text-primary font-black text-4xl tracking-tight">{totalHours}h</div>
+          <div className="stat-desc text-base-content/60 font-semibold mt-2">Across all active projects & modules</div>
+        </div>
+        
+        <div className="stat p-6 flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-base-300/80">
+          <div className="stat-figure text-success p-4 bg-success/10 rounded-2xl border border-success/20 shadow-sm">
+            <CheckCircle className="w-8 h-8" />
+          </div>
+          <div className="stat-title text-base-content/60 font-extrabold uppercase text-xs tracking-widest mb-1">Tasks / Docs Completed</div>
+          <div className="stat-value font-outfit text-success font-black text-4xl tracking-tight">{completedTasks}</div>
+          <div className="stat-desc text-success font-bold mt-2 flex items-center gap-1">↗︎ 12% more than last week</div>
+        </div>
+        
+        <div className="stat p-6 flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-base-300/80">
+          <div className="stat-figure text-warning p-4 bg-warning/10 rounded-2xl border border-warning/20 shadow-sm">
+            <Calendar className="w-8 h-8" />
+          </div>
+          <div className="stat-title text-base-content/60 font-extrabold uppercase text-xs tracking-widest mb-1">Upcoming Deadlines</div>
+          <div className="stat-value font-outfit text-warning font-black text-4xl tracking-tight">{upcomingDeadlines}</div>
+          <div className="stat-desc text-warning font-bold mt-2 flex items-center gap-1">Requires immediate attention</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+        {/* Weekly Tracking Breakdown Card */}
+        <div className="card bg-base-200/90 backdrop-blur-2xl border border-base-300 shadow-2xl p-8 rounded-3xl flex flex-col">
+          <div className="flex justify-between items-center mb-8 border-b border-base-300/80 pb-4">
+            <h2 className="font-outfit text-xl font-black text-base-content tracking-tight">Weekly Tracking Breakdown</h2>
+            <div className="flex items-center gap-6 text-xs font-bold text-base-content/70">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-primary shadow-sm shadow-primary/30"></div>
                 Productive
               </div>
-              <div className={styles.legendItem}>
-                <div className={styles.dot} style={{backgroundColor: '#e9ecef'}}></div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-base-300 border border-base-300/80"></div>
                 Deep Work
               </div>
             </div>
           </div>
           
-          <div className={styles.barChart}>
+          <div className="flex justify-between items-end h-64 mt-auto gap-4 pt-8">
             {chartData.map((data, idx) => (
-              <div key={idx} className={styles.barColumn} onMouseEnter={() => setHoveredDay(idx)} onMouseLeave={() => setHoveredDay(null)} style={{ position: 'relative' }}>
-                <div className={styles.barWrapper}>
-                  <div className={styles.barSegment} style={{height: `${data.deep}%`, backgroundColor: '#e9ecef'}}></div>
-                  <div className={styles.barSegment} style={{height: `${data.prod}%`, backgroundColor: 'var(--accent-black)'}}></div>
+              <div key={idx} className="flex-1 flex flex-col items-center gap-3 relative group cursor-pointer" onMouseEnter={() => setHoveredDay(idx)} onMouseLeave={() => setHoveredDay(null)}>
+                <div className="w-full max-w-[56px] h-52 flex flex-col justify-end rounded-2xl overflow-hidden bg-base-100/80 border border-base-300/80 shadow-inner">
+                  <div className="w-full transition-all duration-500 bg-base-300/80 group-hover:bg-base-300" style={{height: `${data.deep}%`}}></div>
+                  <div className="w-full transition-all duration-500 bg-primary group-hover:opacity-85 shadow-lg shadow-primary/20" style={{height: `${data.prod}%`}}></div>
                 </div>
-                <span className={styles.dayLabel}>{data.day}</span>
+                <span className="text-xs font-extrabold text-base-content/60 group-hover:text-primary transition-colors">{data.day}</span>
                 {hoveredDay === idx && (
-                  <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--accent-black)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none', marginBottom: '0.5rem' }}>
+                  <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-base-100 border border-base-300 text-base-content px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap z-20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 border-primary/20">
                     {data.label}
                   </div>
                 )}
@@ -95,100 +141,84 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className={styles.statsCard}>
-            <div className={styles.statsIcon}>✓</div>
-            <div className={styles.statsBadge}>+12%</div>
-            <div>
-              <div className={styles.statsValue}>{completedTasks}</div>
-              <div className={styles.statsLabel}>Tasks Completed This Week</div>
-            </div>
+        {/* Time per Project Card */}
+        <div className="card bg-base-200/90 backdrop-blur-2xl border border-base-300 shadow-2xl p-8 rounded-3xl flex flex-col">
+          <div className="flex justify-between items-center mb-8 border-b border-base-300/80 pb-4">
+            <h2 className="font-outfit text-xl font-black text-base-content tracking-tight">Time per Project / Module</h2>
+            {selectedProject !== 'ALL' && (
+              <button onClick={() => setSelectedProject('ALL')} className="text-primary hover:underline text-xs font-bold cursor-pointer">Reset Filter</button>
+            )}
           </div>
           
-          <div className={styles.lightStatsCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div className={styles.statsIcon} style={{backgroundColor: 'var(--bg-secondary)', border: 'none'}}>📅</div>
-              <span className={styles.redBadge}>High Priority</span>
+          <div className="relative w-52 h-52 mx-auto mb-10 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 filter drop-shadow-lg">
+              <circle cx="50" cy="50" r="40" fill="transparent" className="stroke-base-300/60" strokeWidth="12" />
+              <circle cx="50" cy="50" r="40" fill="transparent" className="stroke-primary" strokeWidth="12" strokeDasharray="113 251" strokeDashoffset="0" strokeLinecap="round" />
+              <circle cx="50" cy="50" r="40" fill="transparent" className="stroke-info" strokeWidth="12" strokeDasharray="75 251" strokeDashoffset="-113" strokeLinecap="round" />
+              <circle cx="50" cy="50" r="40" fill="transparent" className="stroke-warning" strokeWidth="12" strokeDasharray="63 251" strokeDashoffset="-188" strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-outfit text-3xl font-black text-base-content tracking-tight">{totalHours}h</span>
+              <span className="text-[10px] text-base-content/60 uppercase tracking-widest font-extrabold mt-0.5">{selectedProject === 'ALL' ? 'Total' : selectedProject}</span>
             </div>
-            <div>
-              <div className={styles.lightStatsValue}>{upcomingDeadlines < 10 ? '0'+upcomingDeadlines : upcomingDeadlines}</div>
-              <div className={styles.statsLabel} style={{color: 'var(--text-secondary)'}}>Upcoming Deadlines</div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className={`flex justify-between items-center p-3.5 rounded-2xl cursor-pointer transition-all duration-200 ${selectedProject === 'Core Infrastructure' ? 'bg-base-100 border border-primary/40 font-bold shadow-md shadow-primary/5' : 'hover:bg-base-100/60 border border-transparent'}`} onClick={() => setSelectedProject('Core Infrastructure')}>
+              <div className="flex items-center gap-3 text-sm text-base-content font-bold">
+                <div className="w-3.5 h-3.5 rounded-full bg-primary shadow-sm shadow-primary/30 flex-shrink-0"></div>
+                Core Infrastructure
+              </div>
+              <div className="text-sm font-black text-base-content">45%</div>
+            </div>
+            <div className={`flex justify-between items-center p-3.5 rounded-2xl cursor-pointer transition-all duration-200 ${selectedProject === 'User Feedback' ? 'bg-base-100 border border-info/40 font-bold shadow-md shadow-info/5' : 'hover:bg-base-100/60 border border-transparent'}`} onClick={() => setSelectedProject('User Feedback')}>
+              <div className="flex items-center gap-3 text-sm text-base-content font-bold">
+                <div className="w-3.5 h-3.5 rounded-full bg-info shadow-sm shadow-info/30 flex-shrink-0"></div>
+                User Feedback
+              </div>
+              <div className="text-sm font-black text-base-content">30%</div>
+            </div>
+            <div className={`flex justify-between items-center p-3.5 rounded-2xl cursor-pointer transition-all duration-200 ${selectedProject === 'Ops/Admin' ? 'bg-base-100 border border-warning/40 font-bold shadow-md shadow-warning/5' : 'hover:bg-base-100/60 border border-transparent'}`} onClick={() => setSelectedProject('Ops/Admin')}>
+              <div className="flex items-center gap-3 text-sm text-base-content font-bold">
+                <div className="w-3.5 h-3.5 rounded-full bg-warning shadow-sm shadow-warning/30 flex-shrink-0"></div>
+                Ops/Admin
+              </div>
+              <div className="text-sm font-black text-base-content">25%</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className={styles.cardTitle}>Time per Project</h2>
-            {selectedProject !== 'ALL' && (
-              <button onClick={() => setSelectedProject('ALL')} style={{ border: 'none', background: 'none', color: '#b08d00', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>Reset Filter</button>
-            )}
-          </div>
-          
-          <div className={styles.doughnutWrapper}>
-            <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--bg-secondary)" strokeWidth="10" />
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-black)" strokeWidth="10" strokeDasharray="113 251" strokeDashoffset="0" />
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#b08d00" strokeWidth="10" strokeDasharray="75 251" strokeDashoffset="-113" />
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#dee2e6" strokeWidth="10" strokeDasharray="63 251" strokeDashoffset="-188" />
-            </svg>
-            <div className={styles.doughnutCenter}>
-              <span className={styles.doughnutTotal}>{totalHours}h</span>
-              <span className={styles.doughnutLabel}>{selectedProject === 'ALL' ? 'Total' : selectedProject}</span>
-            </div>
-          </div>
-
-          <div className={styles.projectList}>
-            <div className={styles.projectItem} onClick={() => setSelectedProject('Core Infrastructure')} style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: '6px', backgroundColor: selectedProject === 'Core Infrastructure' ? 'var(--bg-secondary)' : 'transparent' }}>
-              <div className={styles.projectLeft}>
-                <div className={styles.dot} style={{backgroundColor: 'var(--accent-black)'}}></div>
-                Core Infrastructure
-              </div>
-              <div className={styles.projectRight}>45%</div>
-            </div>
-            <div className={styles.projectItem} onClick={() => setSelectedProject('User Feedback')} style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: '6px', backgroundColor: selectedProject === 'User Feedback' ? 'var(--bg-secondary)' : 'transparent' }}>
-              <div className={styles.projectLeft}>
-                <div className={styles.dot} style={{backgroundColor: '#b08d00'}}></div>
-                User Feedback
-              </div>
-              <div className={styles.projectRight}>30%</div>
-            </div>
-            <div className={styles.projectItem} onClick={() => setSelectedProject('Ops/Admin')} style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: '6px', backgroundColor: selectedProject === 'Ops/Admin' ? 'var(--bg-secondary)' : 'transparent' }}>
-              <div className={styles.projectLeft}>
-                <div className={styles.dot} style={{backgroundColor: '#dee2e6'}}></div>
-                Ops/Admin
-              </div>
-              <div className={styles.projectRight}>25%</div>
-            </div>
-          </div>
+      {/* Recent Activity Card */}
+      <div className="card bg-base-200/90 backdrop-blur-2xl border border-base-300 shadow-2xl p-8 rounded-3xl flex flex-col">
+        <div className="flex justify-between items-center mb-8 border-b border-base-300/80 pb-4">
+          <h2 className="font-outfit text-xl font-black text-base-content tracking-tight">Recent Activity {selectedProject !== 'ALL' ? `(${selectedProject})` : ''}</h2>
+          <button onClick={() => setSelectedProject('ALL')} className="btn btn-ghost btn-xs font-bold text-base-content/60 hover:text-base-content cursor-pointer">View all</button>
         </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Recent Activity {selectedProject !== 'ALL' ? `(${selectedProject})` : ''}</h2>
-            <span onClick={() => setSelectedProject('ALL')} style={{fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', color: 'var(--text-secondary)'}}>View all activity</span>
-          </div>
-
-          <div className={styles.activityList}>
-            {filteredActivities.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No recent activity for this project.</div>
-            ) : (
-              filteredActivities.map(act => (
-                <div key={act.id} className={styles.activityItem}>
-                  <div className={styles.activityIcon}>{act.type === 'time' ? '⏱️' : act.type === 'status' ? '🔄' : '📋'}</div>
-                  <div className={styles.activityContent}>
-                    <div className={styles.activityText}>
-                      {act.text}
-                    </div>
-                    <div className={styles.activityMeta}>{act.project} • {act.meta}</div>
-                  </div>
-                  {act.badge && <Badge text={act.badge} type={act.badgeType} />}
+        <div className="flex flex-col gap-6 overflow-y-auto pr-1 max-h-96">
+          {filteredActivities.length === 0 ? (
+            <div className="py-12 text-center text-base-content/60 text-sm font-semibold">No recent activity for this project.</div>
+          ) : (
+            filteredActivities.map(act => (
+              <div key={act.id} className="flex items-start gap-4 p-4 bg-base-100/60 rounded-2xl border border-base-300/60 hover:border-primary/40 hover:bg-base-100 shadow-sm transition-all duration-200 group">
+                <div className="w-12 h-12 rounded-2xl bg-base-100 border border-base-300 flex items-center justify-center text-base-content flex-shrink-0 shadow-sm group-hover:border-primary group-hover:scale-110 transition-all duration-300">
+                  {act.type === 'time' ? <Clock className="w-5 h-5 text-primary" /> : act.type === 'status' ? <RefreshCw className="w-5 h-5 text-info" /> : <FileText className="w-5 h-5 text-warning" />}
                 </div>
-              ))
-            )}
-          </div>
+                <div className="flex-1 flex flex-col gap-1 min-w-0">
+                  <div className="text-sm font-bold text-base-content leading-snug group-hover:text-primary transition-colors truncate">
+                    {act.text}
+                  </div>
+                  <div className="text-xs text-base-content/60 font-medium">{act.project} • {act.meta}</div>
+                </div>
+                {act.badge && (
+                  <div className="flex-shrink-0 ml-2">
+                    <Badge text={act.badge} type={act.badgeType} />
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

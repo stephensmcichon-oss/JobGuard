@@ -9,8 +9,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <html lang="en" data-theme="dark">
+      <body className="flex h-screen overflow-hidden bg-base-100 text-base-content antialiased transition-colors">
         <TaskProvider>
           <ClientLayout>
             {children}

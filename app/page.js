@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
-import styles from './TaskList.module.css';
 import TaskRow from '@/components/TaskRow';
+import { List, Kanban, Calendar as CalendarIcon, Filter, ArrowUpDown, ChevronDown, ChevronRight, Play, Pause, Square, ChevronLeft, Sparkles, CheckCircle, Clock } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -63,116 +63,165 @@ export default function Home() {
   const assigneesList = Array.from(new Set(tasks.map(t => t.assigneeInitials)));
 
   return (
-    <div className={styles.container}>
-      <div className={styles.controls}>
-        <div className={styles.viewTabs}>
-          <div className={`${styles.tab} ${activeTab === 'list' ? styles.active : ''}`} onClick={() => setActiveTab('list')}>
-            <span>🔠</span> List
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto flex flex-col gap-8 animate-in fade-in duration-300">
+      {/* Spectacular Hero Summary Card */}
+      <div className="card bg-gradient-to-r from-base-200 via-primary/5 to-base-200 border border-base-300/80 p-8 shadow-2xl rounded-3xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative overflow-hidden backdrop-blur-2xl">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-base-content/60 uppercase tracking-wider">
+            <span>Enterprise Workspace</span>
+            <span>/</span>
+            <span className="text-primary font-extrabold">Active Sprint</span>
           </div>
-          <div className={styles.tab} onClick={() => router.push('/board')}>
-            <span>📋</span> Board
+          <h1 className="font-outfit text-4xl font-black text-base-content tracking-tight flex items-center gap-3">
+            Active Tasks & Docs <span className="badge badge-primary badge-lg font-extrabold shadow-sm">{filteredTasks.length} total</span>
+          </h1>
+          <p className="text-base-content/70 text-base max-w-xl leading-relaxed font-medium">
+            Manage your high-density engineering tasks, documentation blocks, and real-time sprint timers in one unified view.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 self-stretch lg:self-auto justify-end">
+          <div className="relative">
+            <button 
+              className={`btn btn-sm h-11 px-4 rounded-xl shadow-md transition-all duration-200 cursor-pointer ${filterPriority !== 'ALL' || filterAssignee !== 'ALL' ? 'btn-primary shadow-primary/20' : 'btn-outline border-base-300 hover:bg-base-200'}`} 
+              onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); }}
+            >
+              <Filter className="w-4 h-4" /> Filter {filterPriority !== 'ALL' || filterAssignee !== 'ALL' ? '(Active)' : ''}
+            </button>
+            {isFilterOpen && (
+              <div className="absolute top-14 right-0 w-72 bg-base-200/95 backdrop-blur-2xl border border-base-300 shadow-2xl z-50 p-5 rounded-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+                <div className="form-control w-full gap-1.5">
+                  <label className="label-text text-xs font-bold text-base-content/60 uppercase tracking-wider">Priority</label>
+                  <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="select select-bordered w-full bg-base-100 text-base-content focus:border-primary cursor-pointer font-medium rounded-xl shadow-inner">
+                    <option value="ALL">All Priorities</option>
+                    <option value="URGENT">Urgent / Bug</option>
+                    <option value="HIGH">High</option>
+                    <option value="NORMAL">Normal / Feature</option>
+                    <option value="LOW">Low / Refactor</option>
+                  </select>
+                </div>
+                <div className="form-control w-full gap-1.5">
+                  <label className="label-text text-xs font-bold text-base-content/60 uppercase tracking-wider">Assignee</label>
+                  <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className="select select-bordered w-full bg-base-100 text-base-content focus:border-primary cursor-pointer font-medium rounded-xl shadow-inner">
+                    <option value="ALL">All Assignees</option>
+                    {assigneesList.map(init => (
+                      <option key={init} value={init}>{init}</option>
+                    ))}
+                  </select>
+                </div>
+                <button onClick={() => { setFilterPriority('ALL'); setFilterAssignee('ALL'); }} className="btn btn-outline btn-sm w-full mt-1 cursor-pointer rounded-xl font-bold">Reset Filters</button>
+              </div>
+            )}
           </div>
-          <div className={`${styles.tab} ${activeTab === 'calendar' ? styles.active : ''}`} onClick={() => setActiveTab('calendar')}>
-            <span>📅</span> Calendar
+
+          <div className="relative">
+            <button 
+              className={`btn btn-sm h-11 px-4 rounded-xl shadow-md transition-all duration-200 cursor-pointer ${sortBy !== 'DEFAULT' ? 'btn-primary shadow-primary/20' : 'btn-outline border-base-300 hover:bg-base-200'}`} 
+              onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterOpen(false); }}
+            >
+              <ArrowUpDown className="w-4 h-4" /> Sort {sortBy !== 'DEFAULT' ? `(${sortBy})` : ''}
+            </button>
+            {isSortOpen && (
+              <div className="absolute top-14 right-0 w-56 bg-base-200/95 backdrop-blur-2xl border border-base-300 shadow-2xl z-50 p-4 rounded-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+                <label className="text-xs font-bold text-base-content/60 uppercase tracking-wider">Sort By</label>
+                <ul className="menu bg-base-100/90 rounded-xl p-1 gap-1 border border-base-300 shadow-sm">
+                  <li><button onClick={() => { setSortBy('DEFAULT'); setIsSortOpen(false); }} className={`font-semibold rounded-lg ${sortBy === 'DEFAULT' ? 'active font-bold text-primary bg-primary/10' : ''}`}>Default</button></li>
+                  <li><button onClick={() => { setSortBy('priority'); setIsSortOpen(false); }} className={`font-semibold rounded-lg ${sortBy === 'priority' ? 'active font-bold text-primary bg-primary/10' : ''}`}>Priority (High to Low)</button></li>
+                  <li><button onClick={() => { setSortBy('dueDate'); setIsSortOpen(false); }} className={`font-semibold rounded-lg ${sortBy === 'dueDate' ? 'active font-bold text-primary bg-primary/10' : ''}`}>Due Date</button></li>
+                  <li><button onClick={() => { setSortBy('timeLogged'); setIsSortOpen(false); }} className={`font-semibold rounded-lg ${sortBy === 'timeLogged' ? 'active font-bold text-primary bg-primary/10' : ''}`}>Time Logged (Most)</button></li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
-          <div className={`${styles.tab} ${filterPriority !== 'ALL' || filterAssignee !== 'ALL' ? styles.active : ''}`} onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); }}>
-            <span>🔍</span> Filter {filterPriority !== 'ALL' || filterAssignee !== 'ALL' ? '(Active)' : ''}
-          </div>
-          <div className={`${styles.tab} ${sortBy !== 'DEFAULT' ? styles.active : ''}`} onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterOpen(false); }}>
-            <span>⇅</span> Sort {sortBy !== 'DEFAULT' ? `(${sortBy})` : ''}
-          </div>
+      </div>
 
-          {/* Filter Dropdown */}
-          {isFilterOpen && (
-            <div style={{ position: 'absolute', top: '120%', right: '100px', width: '260px', backgroundColor: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', zIndex: 100, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Priority</label>
-                <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                  <option value="ALL">All Priorities</option>
-                  <option value="URGENT">Urgent / Bug</option>
-                  <option value="HIGH">High</option>
-                  <option value="NORMAL">Normal / Feature</option>
-                  <option value="LOW">Low / Refactor</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Assignee</label>
-                <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                  <option value="ALL">All Assignees</option>
-                  {assigneesList.map(init => (
-                    <option key={init} value={init}>{init}</option>
-                  ))}
-                </select>
-              </div>
-              <button onClick={() => { setFilterPriority('ALL'); setFilterAssignee('ALL'); }} style={{ padding: '0.5rem', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Reset Filters</button>
-            </div>
-          )}
+      {/* Segmented Controls for Tabs */}
+      <div className="flex items-center justify-between flex-wrap gap-4 border-b border-base-300/80 pb-6">
+        <div className="tabs tabs-boxed bg-base-300/40 p-1.5 rounded-2xl shadow-inner border border-base-300/60">
+          <button 
+            className={`tab gap-2 font-bold cursor-pointer h-10 px-5 rounded-xl transition-all duration-200 ${activeTab === 'list' ? 'tab-active bg-base-100 text-primary font-black shadow-md border border-base-300/80' : 'text-base-content/70 hover:text-base-content'}`} 
+            onClick={() => setActiveTab('list')}
+          >
+            <List className="w-4 h-4" /> List View
+          </button>
+          <button 
+            className="tab gap-2 font-bold cursor-pointer h-10 px-5 rounded-xl text-base-content/70 hover:text-base-content transition-all duration-200" 
+            onClick={() => router.push('/board')}
+          >
+            <Kanban className="w-4 h-4" /> Kanban Board
+          </button>
+          <button 
+            className={`tab gap-2 font-bold cursor-pointer h-10 px-5 rounded-xl transition-all duration-200 ${activeTab === 'calendar' ? 'tab-active bg-base-100 text-primary font-black shadow-md border border-base-300/80' : 'text-base-content/70 hover:text-base-content'}`} 
+            onClick={() => setActiveTab('calendar')}
+          >
+            <CalendarIcon className="w-4 h-4" /> Calendar View
+          </button>
+        </div>
 
-          {/* Sort Dropdown */}
-          {isSortOpen && (
-            <div style={{ position: 'absolute', top: '120%', right: 0, width: '200px', backgroundColor: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', zIndex: 100, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Sort By</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <button onClick={() => { setSortBy('DEFAULT'); setIsSortOpen(false); }} style={{ textAlign: 'left', padding: '0.5rem', background: sortBy === 'DEFAULT' ? 'var(--bg-secondary)' : 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Default</button>
-                <button onClick={() => { setSortBy('priority'); setIsSortOpen(false); }} style={{ textAlign: 'left', padding: '0.5rem', background: sortBy === 'priority' ? 'var(--bg-secondary)' : 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Priority (High to Low)</button>
-                <button onClick={() => { setSortBy('dueDate'); setIsSortOpen(false); }} style={{ textAlign: 'left', padding: '0.5rem', background: sortBy === 'dueDate' ? 'var(--bg-secondary)' : 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Due Date</button>
-                <button onClick={() => { setSortBy('timeLogged'); setIsSortOpen(false); }} style={{ textAlign: 'left', padding: '0.5rem', background: sortBy === 'timeLogged' ? 'var(--bg-secondary)' : 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Time Logged (Most)</button>
-              </div>
-            </div>
-          )}
+        <div className="flex items-center gap-4 text-xs font-bold text-base-content/60">
+          <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-success" /> {tasksReview.length} Completed</span>
+          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-warning" /> {tasksInProgress.length} In Progress</span>
         </div>
       </div>
 
       {activeTab === 'calendar' ? (
-        <div style={{ padding: '2rem', backgroundColor: 'white', borderRadius: '12px', border: '1px solid var(--border-color)', marginTop: '1rem', minHeight: '500px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>October 2023</h2>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button style={{ padding: '0.5rem 1rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'white', cursor: 'pointer' }}>◀</button>
-              <button style={{ padding: '0.5rem 1rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'white', cursor: 'pointer' }}>Today</button>
-              <button style={{ padding: '0.5rem 1rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'white', cursor: 'pointer' }}>▶</button>
+        <div className="p-8 bg-base-100/80 backdrop-blur-xl rounded-3xl border border-base-300 shadow-xl min-h-[500px] flex flex-col gap-6 animate-in fade-in duration-200">
+          <div className="flex justify-between items-center">
+            <h2 className="font-outfit text-2xl font-black text-base-content tracking-tight">October 2023</h2>
+            <div className="flex items-center gap-2">
+              <button className="btn btn-outline btn-sm border-base-300 cursor-pointer rounded-xl shadow-sm">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button className="btn btn-outline btn-sm border-base-300 cursor-pointer font-bold rounded-xl shadow-sm">
+                Today
+              </button>
+              <button className="btn btn-outline btn-sm border-base-300 cursor-pointer rounded-xl shadow-sm">
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', backgroundColor: 'var(--border-color)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+          <div className="grid grid-cols-7 gap-px bg-base-300/80 border border-base-300 rounded-2xl overflow-hidden shadow-inner font-sans">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} style={{ padding: '0.75rem', backgroundColor: 'var(--bg-secondary)', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>{d}</div>
+              <div key={d} className="py-3.5 bg-base-200/80 font-black text-xs text-base-content/60 text-center uppercase tracking-wider">{d}</div>
             ))}
             {Array.from({ length: 31 }).map((_, i) => {
               const day = i + 1;
               const dayTasks = tasks.filter(t => t.dueDate.includes(`${day},`) || (day === 12 && t.dueDate.includes('Oct 12')) || (day === 14 && t.dueDate.includes('Oct 14')) || (day === 20 && t.dueDate.includes('Oct 20')) || (day === 25 && t.dueDate.includes('Oct 25')));
               return (
-                <div key={day} style={{ padding: '0.75rem', backgroundColor: 'white', minHeight: '100px', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: dayTasks.length > 0 ? 'var(--text-primary)' : 'var(--text-tertiary)', marginBottom: '0.5rem' }}>{day}</span>
-                  {dayTasks.map(t => (
-                    <div key={t.id} style={{ padding: '0.25rem 0.5rem', backgroundColor: t.priority === 'URGENT' || t.priority === 'HIGH' ? '#ffe3e3' : 'var(--bg-secondary)', color: t.priority === 'URGENT' || t.priority === 'HIGH' ? '#c92a2a' : 'var(--text-primary)', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {t.name}
-                    </div>
-                  ))}
+                <div key={day} className="p-3 bg-base-100/90 min-h-[120px] flex flex-col gap-2 hover:bg-base-200/50 transition-colors border-b border-r border-base-300/50 group">
+                  <span className={`text-sm font-black ${dayTasks.length > 0 ? 'text-primary' : 'text-base-content/40'}`}>{day}</span>
+                  <div className="flex flex-col gap-1.5 overflow-y-auto max-h-24 pr-1">
+                    {dayTasks.map(t => (
+                      <div key={t.id} className={`px-2.5 py-1.5 rounded-xl text-xs font-bold truncate shadow-sm border transition-all hover:scale-[1.02] cursor-pointer ${t.priority === 'URGENT' || t.priority === 'HIGH' ? 'bg-error/15 text-error border-error/30' : 'bg-base-200 text-base-content border-base-300'}`}>
+                        {t.name}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       ) : (
-        <>
-          <div className={styles.tableHeader}>
-            <div>TASK NAME</div>
+        <div className="flex flex-col gap-8 animate-in fade-in duration-200 font-sans">
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] px-5 py-3.5 bg-base-200/60 border border-base-300 rounded-2xl text-[11px] font-extrabold text-base-content/60 uppercase tracking-widest shadow-sm backdrop-blur-md">
+            <div>TASK NAME / DOCUMENT</div>
             <div>ASSIGNEE</div>
             <div>DUE DATE</div>
             <div>PRIORITY</div>
             <div>TIME LOGGED</div>
           </div>
 
-          <div className={styles.section}>
-            <div className={styles.sectionHeader} onClick={() => toggleSection('TODO')} style={{ cursor: 'pointer' }}>
-              <span className={styles.collapseIcon}>{collapsedSections.TODO ? '▶' : '▼'}</span>
-              <span className={styles.statusLabel}>TO DO / BACKLOG</span>
-              <span className={styles.taskCount}>{tasksToDo.length} Tasks</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 py-1 cursor-pointer select-none group" onClick={() => toggleSection('TODO')}>
+              {collapsedSections.TODO ? <ChevronRight className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" /> : <ChevronDown className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" />}
+              <span className="badge badge-primary font-black tracking-widest uppercase shadow-sm py-2.5 px-3 bg-primary/20 text-primary border border-primary/30 rounded-xl">TO DO / BACKLOG</span>
+              <span className="text-xs font-bold text-base-content/60">{tasksToDo.length} Tasks</span>
             </div>
             {!collapsedSections.TODO && (
-              <div>
+              <div className="flex flex-col gap-2">
                 {tasksToDo.map((task) => (
                   <TaskRow key={task.id} task={task} />
                 ))}
@@ -180,14 +229,14 @@ export default function Home() {
             )}
           </div>
 
-          <div className={styles.section}>
-            <div className={styles.sectionHeader} onClick={() => toggleSection('IN_PROGRESS')} style={{ cursor: 'pointer' }}>
-              <span className={styles.collapseIcon}>{collapsedSections.IN_PROGRESS ? '▶' : '▼'}</span>
-              <span className={`${styles.statusLabel} ${styles.inProgress}`}>IN PROGRESS</span>
-              <span className={styles.taskCount}>{tasksInProgress.length} Task{tasksInProgress.length !== 1 ? 's' : ''}</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 py-1 cursor-pointer select-none group" onClick={() => toggleSection('IN_PROGRESS')}>
+              {collapsedSections.IN_PROGRESS ? <ChevronRight className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" /> : <ChevronDown className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" />}
+              <span className="badge badge-info font-black tracking-widest uppercase shadow-sm py-2.5 px-3 bg-info/20 text-info border border-info/30 rounded-xl">IN PROGRESS</span>
+              <span className="text-xs font-bold text-base-content/60">{tasksInProgress.length} Task{tasksInProgress.length !== 1 ? 's' : ''}</span>
             </div>
             {!collapsedSections.IN_PROGRESS && (
-              <div>
+              <div className="flex flex-col gap-2">
                 {tasksInProgress.map((task) => (
                   <TaskRow key={task.id} task={task} activeTracking={activeTrackingId === task.id && isTracking} />
                 ))}
@@ -195,36 +244,48 @@ export default function Home() {
             )}
           </div>
 
-          <div className={styles.section}>
-            <div className={styles.sectionHeader} onClick={() => toggleSection('REVIEW')} style={{ cursor: 'pointer' }}>
-              <span className={styles.collapseIcon}>{collapsedSections.REVIEW ? '▶' : '▼'}</span>
-              <span className={`${styles.statusLabel} ${styles.review}`}>REVIEW / DONE</span>
-              <span className={styles.taskCount}>{tasksReview.length} Task{tasksReview.length !== 1 ? 's' : ''}</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 py-1 cursor-pointer select-none group" onClick={() => toggleSection('REVIEW')}>
+              {collapsedSections.REVIEW ? <ChevronRight className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" /> : <ChevronDown className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" />}
+              <span className="badge badge-neutral font-black tracking-widest uppercase shadow-sm py-2.5 px-3 bg-base-300 text-base-content/80 border border-base-300/80 rounded-xl">REVIEW / DONE</span>
+              <span className="text-xs font-bold text-base-content/60">{tasksReview.length} Task{tasksReview.length !== 1 ? 's' : ''}</span>
             </div>
             {!collapsedSections.REVIEW && (
-              <div style={{ opacity: 0.6 }}>
+              <div className="flex flex-col gap-2 opacity-75 hover:opacity-100 transition-opacity duration-300">
                 {tasksReview.map((task) => (
                   <TaskRow key={task.id} task={task} />
                 ))}
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
 
-      {/* Active Tracker Banner */}
+      {/* Spectacular Floating Island Active Tracking Banner */}
       {isTracking && activeTask && (
-        <div className={styles.activeTracker}>
-          <div className={styles.trackerLeft}>
-            <div className={styles.trackerDot}></div>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--status-normal-text)' }}>ACTIVE TRACKING</span>
-            <span className={styles.trackerTitle}>{activeTask.name}</span>
+        <div className="alert alert-info shadow-[0_10px_30px_rgba(0,0,0,0.5)] fixed bottom-8 left-1/2 -translate-x-1/2 w-auto min-w-[650px] max-w-3xl flex items-center justify-between gap-12 border border-info/50 rounded-2xl z-50 animate-in slide-in-from-bottom-10 duration-300 bg-info/95 backdrop-blur-2xl text-info-content">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-3 h-3 bg-info-content rounded-full animate-ping flex-shrink-0"></div>
+            <span className="text-xs font-black tracking-widest text-info-content uppercase flex-shrink-0">ACTIVE TRACKING</span>
+            <span className="font-bold text-base truncate text-info-content">{activeTask.name}</span>
           </div>
-          <div className={styles.trackerRight}>
-            <span className={styles.trackerTime}>{formatTime(activeTask.timeLogged)}</span>
-            <div className={styles.trackerControls}>
-              <button className={`${styles.controlBtn} ${styles.stopBtn}`} onClick={stopTracking}>⏹</button>
-              <button className={`${styles.controlBtn} ${styles.pauseBtn}`} onClick={pauseTracking}>⏸</button>
+          <div className="flex items-center gap-6 flex-shrink-0">
+            <span className="font-mono text-2xl font-black text-info-content tracking-tight">{formatTime(activeTask.timeLogged)}</span>
+            <div className="flex items-center gap-2">
+              <button 
+                className="btn btn-error btn-circle btn-sm shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer" 
+                onClick={stopTracking}
+                title="Stop Tracking"
+              >
+                <Square className="w-3.5 h-3.5 fill-current" />
+              </button>
+              <button 
+                className="btn btn-ghost btn-circle btn-sm bg-base-100 text-base-content hover:bg-base-200 shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer border border-base-300" 
+                onClick={pauseTracking}
+                title="Pause Tracking"
+              >
+                <Pause className="w-3.5 h-3.5 fill-current" />
+              </button>
             </div>
           </div>
         </div>

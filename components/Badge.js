@@ -1,52 +1,35 @@
 export default function Badge({ text, type }) {
-  let bgColor, textColor;
+  let badgeStyle = 'bg-base-300/50 text-base-content/70 border-base-300/80';
 
-  switch (type.toLowerCase()) {
-    case 'urgent':
-    case 'bug':
-      bgColor = 'var(--status-urgent-bg)';
-      textColor = 'var(--status-urgent-text)';
-      break;
-    case 'normal':
-    case 'feature':
-      bgColor = 'var(--status-normal-bg)';
-      textColor = 'var(--status-normal-text)';
-      break;
-    case 'productive':
-      bgColor = 'var(--status-productive-bg)';
-      textColor = 'var(--status-productive-text)';
-      break;
-    case 'deep work':
-      bgColor = 'var(--status-deepwork-bg)';
-      textColor = 'var(--status-deepwork-text)';
-      break;
-    case 'high':
-    case 'security':
-      bgColor = 'var(--status-high-bg)';
-      textColor = 'var(--status-high-text)';
-      break;
-    case 'low':
-    case 'refactor':
-    default:
-      bgColor = 'var(--status-low-bg)';
-      textColor = 'var(--status-low-text)';
-      break;
+  if (type) {
+    switch (type.toLowerCase()) {
+      case 'urgent':
+      case 'bug':
+        badgeStyle = 'bg-error/15 text-error border-error/30 shadow-sm shadow-error/10';
+        break;
+      case 'normal':
+      case 'feature':
+        badgeStyle = 'bg-warning/15 text-warning border-warning/30 shadow-sm shadow-warning/10';
+        break;
+      case 'productive':
+      case 'success':
+        badgeStyle = 'bg-success/15 text-success border-success/30 shadow-sm shadow-success/10';
+        break;
+      case 'deep work':
+      case 'high':
+      case 'security':
+        badgeStyle = 'bg-info/15 text-info border-info/30 shadow-sm shadow-info/10';
+        break;
+      case 'low':
+      case 'refactor':
+      default:
+        badgeStyle = 'bg-base-300/50 text-base-content/70 border-base-300/80';
+        break;
+    }
   }
 
   return (
-    <span
-      style={{
-        backgroundColor: bgColor,
-        color: textColor,
-        padding: '0.2rem 0.6rem',
-        borderRadius: 'var(--radius-xl)',
-        fontSize: '0.65rem',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest border transition-all duration-200 ${badgeStyle}`}>
       {text}
     </span>
   );

@@ -128,6 +128,8 @@ export function TaskProvider({ children }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState('ALL');
   const [initialColumnStatus, setInitialColumnStatus] = useState('TO DO');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [theme, setThemeState] = useState('dark');
 
   useEffect(() => {
     const savedTasks = localStorage.getItem('taskflow-tasks');
@@ -140,6 +142,11 @@ export function TaskProvider({ children }) {
     } else {
       setTasks(initialTasks);
     }
+
+    const savedTheme = localStorage.getItem('daisyui-theme') || localStorage.getItem('supabase-theme') || 'dark';
+    setThemeState(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
     setIsLoaded(true);
   }, []);
 
@@ -166,6 +173,17 @@ export function TaskProvider({ children }) {
     }
     return () => clearInterval(interval);
   }, [isTracking, activeTrackingId]);
+
+  const setTheme = (newTheme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('daisyui-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+  };
 
   const addTask = (newTask) => {
     setTasks([{...newTask, timeLogged: 0, id: `TASK-${Math.floor(Math.random() * 1000)}`}, ...tasks]);
@@ -223,6 +241,11 @@ export function TaskProvider({ children }) {
       selectedProject,
       setSelectedProject,
       initialColumnStatus,
+      isSearchModalOpen,
+      setIsSearchModalOpen,
+      theme,
+      setTheme,
+      toggleTheme,
       addTask,
       updateTaskStatus,
       deleteTask,
