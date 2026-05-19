@@ -10,7 +10,6 @@ export default function NewTaskModal() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [assignee, setAssignee] = useState('');
-  const [assigneeInitials, setAssigneeInitials] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('NORMAL');
   const [status, setStatus] = useState(initialStatus || 'TO DO');
@@ -21,11 +20,27 @@ export default function NewTaskModal() {
     e.preventDefault();
     if (!name.trim()) return;
 
+    let finalAssignee = 'Unassigned';
+    let finalInitials = 'UN';
+
+    if (isAdmin) {
+      if (assignee) {
+        const emp = employees.find(e => e.id === assignee);
+        if (emp) {
+          finalAssignee = emp.fullName;
+          finalInitials = emp.initials;
+        }
+      }
+    } else {
+      finalAssignee = currentUser?.name || 'Employee';
+      finalInitials = currentUser?.initials || 'EMP';
+    }
+
     addTask({
       name,
       description,
-      assignee: isAdmin ? (assignee || 'Unassigned') : (currentUser?.name || 'Employee'),
-      assigneeInitials: isAdmin ? (assigneeInitials || 'UN') : (currentUser?.initials || 'EMP'),
+      assignee: finalAssignee,
+      assigneeInitials: finalInitials,
       dueDate: dueDate || 'No due date',
       priority,
       status: status || initialStatus || 'TO DO',
@@ -34,7 +49,6 @@ export default function NewTaskModal() {
     setName('');
     setDescription('');
     setAssignee('');
-    setAssigneeInitials('');
     setDueDate('');
     setPriority('NORMAL');
     setStatus(initialStatus || 'TO DO');
@@ -90,32 +104,20 @@ export default function NewTaskModal() {
           </div>
 
           {isAdmin && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="form-control w-full gap-1.5">
-                <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-warning" /> Assignee Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Alex Miller"
-                  value={assignee}
-                  onChange={(e) => setAssignee(e.target.value)}
-                  className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium shadow-inner"
-                />
-              </div>
-              <div className="form-control w-full gap-1.5">
-                <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-warning" /> Assignee Initials
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. AM"
-                  value={assigneeInitials}
-                  onChange={(e) => setAssigneeInitials(e.target.value)}
-                  maxLength={3}
-                  className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium uppercase shadow-inner"
-                />
-              </div>
+            <div className="form-control w-full gap-1.5">
+              <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-warning" /> Assignee Name
+              </label>
+              <select
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+                className="select select-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium cursor-pointer shadow-inner"
+              >
+                <option value="">Unassigned</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.fullName}</option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -125,8 +127,7 @@ export default function NewTaskModal() {
                 <Calendar className="w-3.5 h-3.5 text-success" /> Due Date
               </label>
               <input
-                type="text"
-                placeholder="e.g. Oct 24, 2023"
+                type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium shadow-inner"
