@@ -139,7 +139,12 @@ export function TaskProvider({ children }) {
     // Optimistic UI (We wait for DB response to get the UUID)
     const { data, error } = await supabase.from('employees').insert([newEmp]).select();
     
-    if (!error && data && data.length > 0) {
+    if (error) {
+      alert(`Database Error: ${error.message}. If this is an RLS policy issue, please disable RLS on the employees table.`);
+      return null;
+    }
+
+    if (data && data.length > 0) {
       const inserted = data[0];
       const uiEmp = {
         id: inserted.id,

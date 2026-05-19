@@ -25,7 +25,7 @@ export default function ClientLayout({ children }) {
     const handleManualLogin = (e) => {
       e.preventDefault();
       setError('');
-      const success = login(username.trim().toLowerCase(), password.trim().toLowerCase());
+      const success = login(username.trim().toLowerCase(), password.trim());
       if (!success) {
         setError('Invalid username or password. Use admin/admin or employee/employee.');
       }
