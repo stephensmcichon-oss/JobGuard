@@ -155,6 +155,14 @@ export function TaskProvider({ children }) {
     return null;
   };
 
+  const updateEmployee = async (id, newEmail, newPassword) => {
+    // Optimistic UI update
+    setEmployees(prev => prev.map(emp => emp.id === id ? { ...emp, email: newEmail, password: newPassword } : emp));
+    
+    // DB update
+    await supabase.from('employees').update({ email: newEmail, password: newPassword }).eq('id', id);
+  };
+
   const login = (username, password) => {
     const cleanUser = username.trim().toLowerCase();
     if (cleanUser === 'admin' && password === 'admin') {
@@ -289,6 +297,7 @@ export function TaskProvider({ children }) {
       login,
       logout,
       addEmployee,
+      updateEmployee,
       activeTrackingId,
       isTracking,
       isNewTaskModalOpen,
