@@ -1,127 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 const TaskContext = createContext();
-
-const initialEmployees = [
-  { id: 'EMP-1', fullName: 'Employee (Default)', email: 'employee@taskflow.com', initials: 'EMP', status: 'Active' },
-  { id: 'EMP-2', fullName: 'Alex R.', email: 'alex.r@taskflow.com', initials: 'AR', status: 'Active' },
-  { id: 'EMP-3', fullName: 'Sarah J.', email: 'sarah.j@taskflow.com', initials: 'SJ', status: 'Busy' },
-  { id: 'EMP-4', fullName: 'Marcus T.', email: 'marcus.t@taskflow.com', initials: 'MT', status: 'Active' },
-  { id: 'EMP-5', fullName: 'Kevin L.', email: 'kevin.l@taskflow.com', initials: 'KL', status: 'Active' },
-];
-
-const initialTasks = [
-  {
-    id: 'TASK-102',
-    name: 'Implement User Authentication',
-    description: 'High priority security module',
-    status: 'TO DO',
-    assignee: 'Employee (Default)',
-    assigneeInitials: 'EMP',
-    assignees: [{ initials: 'EMP' }],
-    dueDate: 'Oct 12, 2023',
-    priority: 'URGENT',
-    timeLogged: 0
-  },
-  {
-    id: 'DOC-44',
-    name: 'Design System Documentation',
-    description: 'Updating component library',
-    status: 'TO DO',
-    assignee: 'Employee (Default)',
-    assigneeInitials: 'EMP',
-    assignees: [{ initials: 'EMP' }],
-    dueDate: 'Oct 14, 2023',
-    priority: 'NORMAL',
-    timeLogged: 0
-  },
-  {
-    id: 'CORE-01',
-    name: 'Refactor Data Grid Engine',
-    description: 'Optimizing rendering speed',
-    status: 'IN PROGRESS',
-    assignee: 'Employee (Default)',
-    assigneeInitials: 'EMP',
-    assignees: [{ initials: 'EMP' }],
-    dueDate: 'Today',
-    priority: 'HIGH',
-    timeLogged: 9912
-  },
-  {
-    id: 'BACK-88',
-    name: 'API Endpoint Optimization',
-    description: 'Latency reduction complete',
-    status: 'REVIEW',
-    assignee: 'Kevin L.',
-    assigneeInitials: 'KL',
-    assignees: [{ initials: 'KL' }],
-    dueDate: 'Yesterday',
-    priority: 'LOW',
-    timeLogged: 29520
-  },
-  {
-    id: 'BUG-12',
-    name: 'Memory leak in WebGL renderer on mobile devices',
-    description: 'Crashing on iPhone',
-    status: 'BACKLOG',
-    assignee: 'Alex R.',
-    assigneeInitials: 'AR',
-    assignees: [{ initials: 'AR' }],
-    dueDate: 'Next Week',
-    priority: 'BUG',
-    timeLogged: 0
-  },
-  {
-    id: 'FEAT-99',
-    name: 'Implement dark mode toggle for workspace settings',
-    description: 'User preference',
-    status: 'BACKLOG',
-    assignee: 'Sarah J.',
-    assigneeInitials: 'SJ',
-    assignees: [{ initials: 'SJ' }, { initials: 'MT' }],
-    dueDate: 'Nov 1, 2023',
-    priority: 'FEATURE',
-    timeLogged: 5400
-  },
-  {
-    id: 'FEAT-100',
-    name: 'Integration with Third-party API for Billing',
-    description: 'Stripe integration',
-    status: 'TO DO',
-    assignee: 'Kevin L.',
-    assigneeInitials: 'KL',
-    assignees: [{ initials: 'KL' }],
-    dueDate: 'Nov 5, 2023',
-    priority: 'FEATURE',
-    timeLogged: 0
-  },
-  {
-    id: 'SEC-01',
-    name: 'End-to-end encryption for team messaging module',
-    description: 'Security compliance',
-    status: 'IN PROGRESS',
-    assignee: 'Alex R.',
-    assigneeInitials: 'AR',
-    assignees: [{ initials: 'AR' }],
-    dueDate: 'Oct 20, 2023',
-    priority: 'SECURITY',
-    timeLogged: 44640
-  },
-  {
-    id: 'REF-02',
-    name: 'Update Redux store to Toolkit structure',
-    description: 'Technical debt',
-    status: 'IN PROGRESS',
-    assignee: 'Marcus T.',
-    assigneeInitials: 'MT',
-    assignees: [{ initials: 'MT' }],
-    dueDate: 'Oct 25, 2023',
-    priority: 'REFACTOR',
-    timeLogged: 15120
-  }
-];
 
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
@@ -141,29 +23,60 @@ export function TaskProvider({ children }) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [theme, setThemeState] = useState('dark');
 
+  // Fetch initial data from Supabase
   useEffect(() => {
-    const savedTasks = localStorage.getItem('taskflow-tasks');
-    if (savedTasks) {
+    const fetchData = async () => {
       try {
-        setTasks(JSON.parse(savedTasks));
-      } catch (e) {
-        setTasks(initialTasks);
-      }
-    } else {
-      setTasks(initialTasks);
-    }
+        // Fetch tasks
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (tasksError) throw tasksError;
+        if (tasksData) {
+          // Map snake_case from DB to camelCase for UI
+          const formattedTasks = tasksData.map(t => ({
+            id: t.id,
+            name: t.name,
+            description: t.description,
+            status: t.status,
+            assignee: t.assignee,
+            assigneeInitials: t.assignee_initials,
+            dueDate: t.due_date,
+            priority: t.priority,
+            timeLogged: t.time_logged
+          }));
+          setTasks(formattedTasks);
+        }
 
-    const savedEmployees = localStorage.getItem('taskflow-employees');
-    if (savedEmployees) {
-      try {
-        setEmployees(JSON.parse(savedEmployees));
-      } catch (e) {
-        setEmployees(initialEmployees);
+        // Fetch employees
+        const { data: employeesData, error: empError } = await supabase
+          .from('employees')
+          .select('*')
+          .order('created_at', { ascending: true });
+        
+        if (empError) throw empError;
+        if (employeesData) {
+          const formattedEmp = employeesData.map(e => ({
+            id: e.id,
+            fullName: e.full_name,
+            email: e.email,
+            initials: e.initials,
+            status: e.status
+          }));
+          setEmployees(formattedEmp);
+        }
+      } catch (err) {
+        console.error('Error fetching from Supabase:', err);
+      } finally {
+        setIsLoaded(true);
       }
-    } else {
-      setEmployees(initialEmployees);
-    }
+    };
 
+    fetchData();
+
+    // Load Local User Session & Theme
     const savedUser = localStorage.getItem('taskflow-user');
     if (savedUser) {
       try {
@@ -176,17 +89,9 @@ export function TaskProvider({ children }) {
     const savedTheme = localStorage.getItem('daisyui-theme') || localStorage.getItem('supabase-theme') || 'dark';
     setThemeState(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
-
-    setIsLoaded(true);
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('taskflow-tasks', JSON.stringify(tasks));
-      localStorage.setItem('taskflow-employees', JSON.stringify(employees));
-    }
-  }, [tasks, employees, isLoaded]);
-
+  // Timer Effect
   useEffect(() => {
     let interval = null;
     if (isTracking && activeTrackingId) {
@@ -205,7 +110,15 @@ export function TaskProvider({ children }) {
     return () => clearInterval(interval);
   }, [isTracking, activeTrackingId]);
 
-  const addEmployee = ({ fullName, email }) => {
+  // Sync Timer to Supabase when stopped/paused
+  const syncTimeLoggedToDB = async (taskId, currentTasks) => {
+    const taskToSync = currentTasks.find(t => t.id === taskId);
+    if (taskToSync) {
+      await supabase.from('tasks').update({ time_logged: taskToSync.timeLogged }).eq('id', taskId);
+    }
+  };
+
+  const addEmployee = async ({ fullName, email }) => {
     const nameParts = fullName.trim().split(' ');
     let initials = 'EM';
     if (nameParts.length > 1) {
@@ -215,15 +128,28 @@ export function TaskProvider({ children }) {
     }
 
     const newEmp = {
-      id: `EMP-${Date.now()}`,
-      fullName: fullName.trim(),
+      full_name: fullName.trim(),
       email: email.trim(),
       initials,
       status: 'Active'
     };
 
-    setEmployees(prev => [...prev, newEmp]);
-    return newEmp;
+    // Optimistic UI (We wait for DB response to get the UUID)
+    const { data, error } = await supabase.from('employees').insert([newEmp]).select();
+    
+    if (!error && data && data.length > 0) {
+      const inserted = data[0];
+      const uiEmp = {
+        id: inserted.id,
+        fullName: inserted.full_name,
+        email: inserted.email,
+        initials: inserted.initials,
+        status: inserted.status
+      };
+      setEmployees(prev => [...prev, uiEmp]);
+      return uiEmp;
+    }
+    return null;
   };
 
   const login = (username, password) => {
@@ -239,7 +165,7 @@ export function TaskProvider({ children }) {
       localStorage.setItem('taskflow-user', JSON.stringify(userObj));
       return true;
     } else {
-      // Check against dynamic employees list
+      // Dynamic auth against Supabase employees
       const matchedEmp = employees.find(emp => emp.email.toLowerCase() === cleanUser);
       if (matchedEmp && password === 'employee') {
         const userObj = { username: cleanUser, role: 'employee', name: matchedEmp.fullName, initials: matchedEmp.initials };
@@ -255,6 +181,7 @@ export function TaskProvider({ children }) {
     setCurrentUser(null);
     localStorage.removeItem('taskflow-user');
     if (isTracking) {
+      syncTimeLoggedToDB(activeTrackingId, tasks);
       setIsTracking(false);
       setActiveTrackingId(null);
     }
@@ -271,20 +198,45 @@ export function TaskProvider({ children }) {
     setTheme(newTheme);
   };
 
-  const addTask = (newTask) => {
-    setTasks([{...newTask, timeLogged: 0, id: `TASK-${Math.floor(Math.random() * 1000)}`}, ...tasks]);
+  const addTask = async (newTask) => {
+    const taskId = `TASK-${Math.floor(Math.random() * 1000)}`;
+    const uiTask = { ...newTask, timeLogged: 0, id: taskId };
+    
+    // Optimistic update
+    setTasks([uiTask, ...tasks]);
+
+    // DB Insert
+    await supabase.from('tasks').insert([{
+      id: taskId,
+      name: newTask.name,
+      description: newTask.description,
+      status: newTask.status,
+      assignee: newTask.assignee,
+      assignee_initials: newTask.assigneeInitials,
+      due_date: newTask.dueDate,
+      priority: newTask.priority,
+      time_logged: 0
+    }]);
   };
 
-  const updateTaskStatus = (id, newStatus) => {
+  const updateTaskStatus = async (id, newStatus) => {
+    // Optimistic update
     setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
+    
+    // DB Update
+    await supabase.from('tasks').update({ status: newStatus }).eq('id', id);
   };
   
-  const deleteTask = (id) => {
+  const deleteTask = async (id) => {
+    // Optimistic update
     setTasks(tasks.filter(task => task.id !== id));
     if (activeTrackingId === id) {
       setIsTracking(false);
       setActiveTrackingId(null);
     }
+
+    // DB Delete
+    await supabase.from('tasks').delete().eq('id', id);
   };
 
   const startTracking = (id) => {
@@ -294,10 +246,12 @@ export function TaskProvider({ children }) {
 
   const pauseTracking = () => {
     setIsTracking(false);
+    syncTimeLoggedToDB(activeTrackingId, tasks);
   };
 
   const stopTracking = () => {
     setIsTracking(false);
+    syncTimeLoggedToDB(activeTrackingId, tasks);
     setActiveTrackingId(null);
   };
 
