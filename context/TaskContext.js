@@ -140,7 +140,7 @@ export function TaskProvider({ children }) {
     const { data, error } = await supabase.from('employees').insert([newEmp]).select();
     
     if (error) {
-      alert(`Database Error: ${error.message} (URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || 'placeholder'}). Please check your Vercel Environment Variables.`);
+      alert(`Database Error: ${error.message}`);
       return null;
     }
 
