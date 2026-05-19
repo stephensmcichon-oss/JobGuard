@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
 import TaskRow from '@/components/TaskRow';
-import { List, Kanban, Calendar as CalendarIcon, Filter, ArrowUpDown, ChevronDown, ChevronRight, Play, Pause, Square, ChevronLeft, Sparkles, CheckCircle, Clock, Plus, User, AlertCircle, FileText, Send } from 'lucide-react';
+import { List, Kanban, Calendar as CalendarIcon, Filter, ArrowUpDown, ChevronDown, ChevronRight, Play, Pause, Square, ChevronLeft, Sparkles, CheckCircle, Clock, Plus, User, AlertCircle, FileText, Send, UserPlus } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
-  const { tasks, activeTrackingId, isTracking, stopTracking, pauseTracking, searchQuery, filterPriority, setFilterPriority, filterAssignee, setFilterAssignee, sortBy, setSortBy, currentUser, addTask } = useTaskContext();
+  const { tasks, employees, addEmployee, activeTrackingId, isTracking, stopTracking, pauseTracking, searchQuery, filterPriority, setFilterPriority, filterAssignee, setFilterAssignee, sortBy, setSortBy, currentUser, addTask } = useTaskContext();
 
   const [activeTab, setActiveTab] = useState('list');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -21,10 +21,15 @@ export default function Home() {
   // Admin Quick Assign Form State
   const [assignName, setAssignName] = useState('');
   const [assignDesc, setAssignDesc] = useState('');
-  const [assignEmp, setAssignEmp] = useState('EMP');
+  const [assignEmpId, setAssignEmpId] = useState(employees[0]?.id || 'EMP-1');
   const [assignPriority, setAssignPriority] = useState('URGENT');
   const [assignDueDate, setAssignDueDate] = useState('Today');
   const [showAssignSuccess, setShowAssignSuccess] = useState(false);
+
+  // Admin Add Employee Form State
+  const [empFullName, setEmpFullName] = useState('');
+  const [empEmailAddress, setEmpEmailAddress] = useState('');
+  const [showEmpSuccess, setShowEmpSuccess] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -32,20 +37,12 @@ export default function Home() {
     e.preventDefault();
     if (!assignName.trim()) return;
 
-    const empMap = {
-      EMP: { name: 'Employee', initials: 'EMP' },
-      AR: { name: 'Alex R.', initials: 'AR' },
-      SJ: { name: 'Sarah J.', initials: 'SJ' },
-      MT: { name: 'Marcus T.', initials: 'MT' },
-      KL: { name: 'Kevin L.', initials: 'KL' }
-    };
-
-    const targetEmp = empMap[assignEmp] || empMap.EMP;
+    const targetEmp = employees.find(emp => emp.id === assignEmpId) || employees[0] || { fullName: 'Employee', initials: 'EMP' };
 
     addTask({
       name: assignName,
       description: assignDesc || 'Assigned via Admin Dispatch Portal',
-      assignee: targetEmp.name,
+      assignee: targetEmp.fullName,
       assigneeInitials: targetEmp.initials,
       dueDate: assignDueDate,
       priority: assignPriority,
@@ -56,6 +53,22 @@ export default function Home() {
     setAssignDesc('');
     setShowAssignSuccess(true);
     setTimeout(() => setShowAssignSuccess(false), 4000);
+  };
+
+  const handleAddEmployee = (e) => {
+    e.preventDefault();
+    if (!empFullName.trim() || !empEmailAddress.trim()) return;
+
+    const newEmp = addEmployee({
+      fullName: empFullName,
+      email: empEmailAddress
+    });
+
+    setAssignEmpId(newEmp.id); // Default new task assigner to the newly added employee
+    setEmpFullName('');
+    setEmpEmailAddress('');
+    setShowEmpSuccess(true);
+    setTimeout(() => setShowEmpSuccess(false), 4000);
   };
 
   const toggleSection = (section) => {
@@ -71,8 +84,13 @@ export default function Home() {
     const matchesAssignee = filterAssignee === 'ALL' || task.assigneeInitials === filterAssignee;
 
     if (!isAdmin) {
-      // Employee sees tasks assigned to EMP or their specific role
-      const matchesEmp = task.assigneeInitials === 'EMP' || task.assignee.toLowerCase().includes('employee');
+      // Employee sees tasks assigned to EMP or their specific role/initials
+      const myInitials = currentUser?.initials || 'EMP';
+      const myEmailName = currentUser?.username?.split('@')[0] || 'employee';
+      const matchesEmp = task.assigneeInitials === myInitials || 
+                         task.assigneeInitials === 'EMP' || 
+                         task.assignee.toLowerCase().includes('employee') ||
+                         task.assignee.toLowerCase().includes(myEmailName);
       return matchesSearch && matchesPriority && matchesAssignee && matchesEmp;
     }
 
@@ -127,7 +145,7 @@ export default function Home() {
           </h1>
           <p className="text-base-content/70 text-base max-w-xl leading-relaxed font-medium">
             {isAdmin 
-              ? 'Assign tasks to employees, monitor real-time tracking, and oversee global sprint progress across all enterprise modules.'
+              ? 'Assign tasks to employees, onboard new team members, monitor real-time tracking, and oversee global sprint progress.'
               : 'Execute your assigned tasks, initiate real-time timers, and submit completed documentation blocks for administrative review.'}
           </p>
         </div>
@@ -190,84 +208,138 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Admin Task Assigner Form */}
+      {/* Admin Management Grid: Task Assigner & Employee Onboarding */}
       {isAdmin && (
-        <div className="card bg-base-200/90 backdrop-blur-2xl border border-error/30 p-6 rounded-3xl shadow-xl flex flex-col gap-4 animate-in fade-in duration-300">
-          <div className="flex items-center justify-between border-b border-base-300 pb-3">
-            <div className="flex items-center gap-2.5 font-outfit font-black text-lg text-base-content tracking-tight">
-              <span className="w-3 h-3 rounded-full bg-error animate-pulse"></span>
-              Quick Assign Task to Employee
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Quick Assign Task Form */}
+          <div className="card bg-base-200/90 backdrop-blur-2xl border border-error/30 p-6 rounded-3xl shadow-xl flex flex-col gap-4 lg:col-span-2 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between border-b border-base-300 pb-3">
+              <div className="flex items-center gap-2.5 font-outfit font-black text-lg text-base-content tracking-tight">
+                <span className="w-3 h-3 rounded-full bg-error animate-pulse"></span>
+                Quick Assign Task to Employee
+              </div>
+              <span className="badge badge-error badge-sm font-bold uppercase tracking-wider">Admin Dispatch Tool</span>
             </div>
-            <span className="badge badge-error badge-sm font-bold uppercase tracking-wider">Admin Dispatch Tool</span>
+
+            {showAssignSuccess && (
+              <div className="alert alert-success shadow-lg rounded-2xl text-xs font-bold py-3 animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4" />
+                <span>Task successfully assigned & dispatched to employee!</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAdminAssign} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+              <div className="form-control w-full md:col-span-2 gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Task Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Urgent Security Patch for Auth Endpoint"
+                  value={assignName}
+                  onChange={(e) => setAssignName(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-medium shadow-inner"
+                  required
+                />
+              </div>
+
+              <div className="form-control w-full gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Assignee</label>
+                <select
+                  value={assignEmpId}
+                  onChange={(e) => setAssignEmpId(e.target.value)}
+                  className="select select-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-bold cursor-pointer shadow-inner"
+                >
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.fullName} ({emp.initials})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-control w-full gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Priority</label>
+                <select
+                  value={assignPriority}
+                  onChange={(e) => setAssignPriority(e.target.value)}
+                  className="select select-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-bold cursor-pointer shadow-inner"
+                >
+                  <option value="URGENT">🚨 URGENT</option>
+                  <option value="HIGH">⚡ HIGH</option>
+                  <option value="NORMAL">📌 NORMAL</option>
+                  <option value="LOW">🌱 LOW</option>
+                </select>
+              </div>
+
+              <div className="form-control w-full gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Due Date</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Today"
+                  value={assignDueDate}
+                  onChange={(e) => setAssignDueDate(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-medium shadow-inner"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-error h-11 rounded-xl font-bold shadow-lg shadow-error/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer w-full flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" /> Dispatch Task
+              </button>
+            </form>
           </div>
 
-          {showAssignSuccess && (
-            <div className="alert alert-success shadow-lg rounded-2xl text-xs font-bold py-3 animate-in fade-in duration-200">
-              <CheckCircle className="w-4 h-4" />
-              <span>Task successfully assigned & dispatched to employee!</span>
-            </div>
-          )}
-
-          <form onSubmit={handleAdminAssign} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 items-end">
-            <div className="form-control w-full md:col-span-2 lg:col-span-2 gap-1">
-              <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Task Name *</label>
-              <input
-                type="text"
-                placeholder="e.g. Urgent Security Patch for Auth Endpoint"
-                value={assignName}
-                onChange={(e) => setAssignName(e.target.value)}
-                className="input input-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-medium shadow-inner"
-                required
-              />
+          {/* Add New Employee Form */}
+          <div className="card bg-base-200/90 backdrop-blur-2xl border border-success/30 p-6 rounded-3xl shadow-xl flex flex-col gap-4 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between border-b border-base-300 pb-3">
+              <div className="flex items-center gap-2.5 font-outfit font-black text-lg text-base-content tracking-tight">
+                <UserPlus className="w-5 h-5 text-success" />
+                Add New Employee
+              </div>
+              <span className="badge badge-success badge-sm font-bold uppercase tracking-wider text-[10px]">Admin Only</span>
             </div>
 
-            <div className="form-control w-full md:col-span-2 lg:col-span-1 gap-1">
-              <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Assignee</label>
-              <select
-                value={assignEmp}
-                onChange={(e) => setAssignEmp(e.target.value)}
-                className="select select-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-bold cursor-pointer shadow-inner"
+            {showEmpSuccess && (
+              <div className="alert alert-success shadow-lg rounded-2xl text-xs font-bold py-3 animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4" />
+                <span>Employee successfully added to Enterprise Directory!</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAddEmployee} className="flex flex-col gap-4">
+              <div className="form-control w-full gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Full Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. David Beckham"
+                  value={empFullName}
+                  onChange={(e) => setEmpFullName(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-sm focus:border-success h-11 rounded-xl font-medium shadow-inner"
+                  required
+                />
+              </div>
+
+              <div className="form-control w-full gap-1">
+                <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Email Address *</label>
+                <input
+                  type="email"
+                  placeholder="e.g. david@taskflow.com"
+                  value={empEmailAddress}
+                  onChange={(e) => setEmpEmailAddress(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-sm focus:border-success h-11 rounded-xl font-medium shadow-inner"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-success h-11 rounded-xl font-bold shadow-lg shadow-success/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer w-full flex items-center justify-center gap-2 mt-2"
               >
-                <option value="EMP">⚡ Employee (EMP)</option>
-                <option value="AR">Alex R. (AR)</option>
-                <option value="SJ">Sarah J. (SJ)</option>
-                <option value="MT">Marcus T. (MT)</option>
-                <option value="KL">Kevin L. (KL)</option>
-              </select>
-            </div>
-
-            <div className="form-control w-full md:col-span-1 lg:col-span-1 gap-1">
-              <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Priority</label>
-              <select
-                value={assignPriority}
-                onChange={(e) => setAssignPriority(e.target.value)}
-                className="select select-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-bold cursor-pointer shadow-inner"
-              >
-                <option value="URGENT">🚨 URGENT</option>
-                <option value="HIGH">⚡ HIGH</option>
-                <option value="NORMAL">📌 NORMAL</option>
-                <option value="LOW">🌱 LOW</option>
-              </select>
-            </div>
-
-            <div className="form-control w-full md:col-span-1 lg:col-span-1 gap-1">
-              <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Due Date</label>
-              <input
-                type="text"
-                placeholder="e.g. Today"
-                value={assignDueDate}
-                onChange={(e) => setAssignDueDate(e.target.value)}
-                className="input input-bordered w-full bg-base-100/80 text-sm focus:border-error h-11 rounded-xl font-medium shadow-inner"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-error h-11 rounded-xl font-bold shadow-lg shadow-error/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer w-full md:col-span-2 lg:col-span-1 flex items-center justify-center gap-2"
-            >
-              <Send className="w-4 h-4" /> Dispatch
-            </button>
-          </form>
+                <UserPlus className="w-4 h-4" /> Onboard Employee
+              </button>
+            </form>
+          </div>
         </div>
       )}
 

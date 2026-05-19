@@ -7,7 +7,7 @@ import { Home, Kanban, BarChart2, FileText, BookOpen, Database, Lock, Server, Za
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { openNewTaskModal, currentUser } = useTaskContext();
+  const { openNewTaskModal, currentUser, employees } = useTaskContext();
 
   const [collapsedSections, setCollapsedSections] = useState({
     products: false,
@@ -85,27 +85,21 @@ export default function Sidebar() {
         {isAdmin && (
           <div>
             <div className="menu-title text-[10px] font-extrabold uppercase tracking-widest text-base-content/50 px-4 mb-2 flex items-center justify-between">
-              <span>Team Directory</span>
+              <span>Team Directory ({employees?.length || 0})</span>
             </div>
             <div className="flex flex-col gap-1 pl-2 pr-2">
-              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-success"></span> Employee (EMP)
-                </span>
-                <span className="badge badge-sm badge-ghost font-mono">Active</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-success"></span> Alex R. (AR)
-                </span>
-                <span className="badge badge-sm badge-ghost font-mono">Active</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-warning"></span> Sarah J. (SJ)
-                </span>
-                <span className="badge badge-sm badge-ghost font-mono">Busy</span>
-              </div>
+              {employees?.map((emp, idx) => {
+                const badgeColors = ['bg-success', 'bg-info', 'bg-warning', 'bg-primary', 'bg-secondary'];
+                const color = badgeColors[idx % badgeColors.length];
+                return (
+                  <div key={emp.id} className="flex items-center justify-between p-2 rounded-xl bg-base-100/50 border border-base-300 text-xs font-semibold mb-1 animate-in fade-in duration-200">
+                    <span className="flex items-center gap-2 truncate" title={`${emp.fullName} (${emp.email})`}>
+                      <span className={`w-2 h-2 rounded-full ${color}`}></span> {emp.fullName} ({emp.initials})
+                    </span>
+                    <span className="badge badge-sm badge-ghost font-mono">{emp.status}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

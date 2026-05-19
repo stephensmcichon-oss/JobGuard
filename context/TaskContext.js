@@ -4,13 +4,21 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TaskContext = createContext();
 
+const initialEmployees = [
+  { id: 'EMP-1', fullName: 'Employee (Default)', email: 'employee@taskflow.com', initials: 'EMP', status: 'Active' },
+  { id: 'EMP-2', fullName: 'Alex R.', email: 'alex.r@taskflow.com', initials: 'AR', status: 'Active' },
+  { id: 'EMP-3', fullName: 'Sarah J.', email: 'sarah.j@taskflow.com', initials: 'SJ', status: 'Busy' },
+  { id: 'EMP-4', fullName: 'Marcus T.', email: 'marcus.t@taskflow.com', initials: 'MT', status: 'Active' },
+  { id: 'EMP-5', fullName: 'Kevin L.', email: 'kevin.l@taskflow.com', initials: 'KL', status: 'Active' },
+];
+
 const initialTasks = [
   {
     id: 'TASK-102',
     name: 'Implement User Authentication',
     description: 'High priority security module',
     status: 'TO DO',
-    assignee: 'Employee',
+    assignee: 'Employee (Default)',
     assigneeInitials: 'EMP',
     assignees: [{ initials: 'EMP' }],
     dueDate: 'Oct 12, 2023',
@@ -22,7 +30,7 @@ const initialTasks = [
     name: 'Design System Documentation',
     description: 'Updating component library',
     status: 'TO DO',
-    assignee: 'Employee',
+    assignee: 'Employee (Default)',
     assigneeInitials: 'EMP',
     assignees: [{ initials: 'EMP' }],
     dueDate: 'Oct 14, 2023',
@@ -34,7 +42,7 @@ const initialTasks = [
     name: 'Refactor Data Grid Engine',
     description: 'Optimizing rendering speed',
     status: 'IN PROGRESS',
-    assignee: 'Employee',
+    assignee: 'Employee (Default)',
     assigneeInitials: 'EMP',
     assignees: [{ initials: 'EMP' }],
     dueDate: 'Today',
@@ -117,6 +125,7 @@ const initialTasks = [
 
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTrackingId, setActiveTrackingId] = useState(null);
@@ -144,6 +153,17 @@ export function TaskProvider({ children }) {
       setTasks(initialTasks);
     }
 
+    const savedEmployees = localStorage.getItem('taskflow-employees');
+    if (savedEmployees) {
+      try {
+        setEmployees(JSON.parse(savedEmployees));
+      } catch (e) {
+        setEmployees(initialEmployees);
+      }
+    } else {
+      setEmployees(initialEmployees);
+    }
+
     const savedUser = localStorage.getItem('taskflow-user');
     if (savedUser) {
       try {
@@ -163,8 +183,9 @@ export function TaskProvider({ children }) {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('taskflow-tasks', JSON.stringify(tasks));
+      localStorage.setItem('taskflow-employees', JSON.stringify(employees));
     }
-  }, [tasks, isLoaded]);
+  }, [tasks, employees, isLoaded]);
 
   useEffect(() => {
     let interval = null;
@@ -184,17 +205,48 @@ export function TaskProvider({ children }) {
     return () => clearInterval(interval);
   }, [isTracking, activeTrackingId]);
 
+  const addEmployee = ({ fullName, email }) => {
+    const nameParts = fullName.trim().split(' ');
+    let initials = 'EM';
+    if (nameParts.length > 1) {
+      initials = (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+    } else if (nameParts[0]) {
+      initials = nameParts[0].slice(0, 2).toUpperCase();
+    }
+
+    const newEmp = {
+      id: `EMP-${Date.now()}`,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      initials,
+      status: 'Active'
+    };
+
+    setEmployees(prev => [...prev, newEmp]);
+    return newEmp;
+  };
+
   const login = (username, password) => {
-    if (username === 'admin' && password === 'admin') {
+    const cleanUser = username.trim().toLowerCase();
+    if (cleanUser === 'admin' && password === 'admin') {
       const userObj = { username: 'admin', role: 'admin', name: 'Administrator' };
       setCurrentUser(userObj);
       localStorage.setItem('taskflow-user', JSON.stringify(userObj));
       return true;
-    } else if (username === 'employee' && password === 'employee') {
+    } else if (cleanUser === 'employee' && password === 'employee') {
       const userObj = { username: 'employee', role: 'employee', name: 'Employee Portal' };
       setCurrentUser(userObj);
       localStorage.setItem('taskflow-user', JSON.stringify(userObj));
       return true;
+    } else {
+      // Check against dynamic employees list
+      const matchedEmp = employees.find(emp => emp.email.toLowerCase() === cleanUser);
+      if (matchedEmp && password === 'employee') {
+        const userObj = { username: cleanUser, role: 'employee', name: matchedEmp.fullName, initials: matchedEmp.initials };
+        setCurrentUser(userObj);
+        localStorage.setItem('taskflow-user', JSON.stringify(userObj));
+        return true;
+      }
     }
     return false;
   };
@@ -259,9 +311,11 @@ export function TaskProvider({ children }) {
   return (
     <TaskContext.Provider value={{
       tasks,
+      employees,
       currentUser,
       login,
       logout,
+      addEmployee,
       activeTrackingId,
       isTracking,
       isNewTaskModalOpen,
