@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTaskContext } from '@/context/TaskContext';
 import TaskRow from '@/components/TaskRow';
@@ -25,6 +25,12 @@ export default function Home() {
   const [assignPriority, setAssignPriority] = useState('URGENT');
   const [assignDueDate, setAssignDueDate] = useState('Today');
   const [showAssignSuccess, setShowAssignSuccess] = useState(false);
+
+  useEffect(() => {
+    if (employees.length > 0 && !employees.find(emp => emp.id === assignEmpId)) {
+      setAssignEmpId(employees[0].id);
+    }
+  }, [employees, assignEmpId]);
 
   // Admin Add Employee Form State
   const [empFullName, setEmpFullName] = useState('');
