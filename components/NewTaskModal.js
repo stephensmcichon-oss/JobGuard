@@ -4,7 +4,8 @@ import { useTaskContext } from '@/context/TaskContext';
 import { Plus, X, Calendar, User, AlertCircle, FileText, CheckCircle, Sparkles } from 'lucide-react';
 
 export default function NewTaskModal() {
-  const { isNewTaskModalOpen, closeNewTaskModal, addTask, initialStatus } = useTaskContext();
+  const { isNewTaskModalOpen, closeNewTaskModal, addTask, initialStatus, currentUser, employees } = useTaskContext();
+  const isAdmin = currentUser?.role === 'admin';
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -23,8 +24,8 @@ export default function NewTaskModal() {
     addTask({
       name,
       description,
-      assignee: assignee || 'Unassigned',
-      assigneeInitials: assigneeInitials || 'UN',
+      assignee: isAdmin ? (assignee || 'Unassigned') : (currentUser?.name || 'Employee'),
+      assigneeInitials: isAdmin ? (assigneeInitials || 'UN') : (currentUser?.initials || 'EMP'),
       dueDate: dueDate || 'No due date',
       priority,
       status: status || initialStatus || 'TO DO',
@@ -88,33 +89,35 @@ export default function NewTaskModal() {
             ></textarea>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="form-control w-full gap-1.5">
-              <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-warning" /> Assignee Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Alex Miller"
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
-                className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium shadow-inner"
-              />
+          {isAdmin && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="form-control w-full gap-1.5">
+                <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-warning" /> Assignee Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Alex Miller"
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium shadow-inner"
+                />
+              </div>
+              <div className="form-control w-full gap-1.5">
+                <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-warning" /> Assignee Initials
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. AM"
+                  value={assigneeInitials}
+                  onChange={(e) => setAssigneeInitials(e.target.value)}
+                  maxLength={3}
+                  className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium uppercase shadow-inner"
+                />
+              </div>
             </div>
-            <div className="form-control w-full gap-1.5">
-              <label className="label-text text-xs font-bold text-base-content/70 uppercase tracking-wider flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-warning" /> Assignee Initials
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. AM"
-                value={assigneeInitials}
-                onChange={(e) => setAssigneeInitials(e.target.value)}
-                maxLength={3}
-                className="input input-bordered w-full bg-base-100/80 text-base-content focus:border-primary focus:ring-2 focus:ring-primary/20 h-12 rounded-xl font-medium uppercase shadow-inner"
-              />
-            </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="form-control w-full gap-1.5">

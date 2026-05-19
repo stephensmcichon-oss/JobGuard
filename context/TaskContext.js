@@ -220,6 +220,22 @@ export function TaskProvider({ children }) {
   };
 
   const updateTaskStatus = async (id, newStatus) => {
+    const isAdmin = currentUser?.role === 'admin';
+    const currentTask = tasks.find(t => t.id === id);
+    if (!currentTask) return;
+
+    if (!isAdmin) {
+      // Employee: only "IN PROGRESS" -> "DONE" (or back)
+      if (currentTask.status !== 'IN PROGRESS' && currentTask.status !== 'DONE' && newStatus !== 'IN PROGRESS' && newStatus !== 'DONE') {
+        alert('Permission Denied: Employees can only change status between "IN PROGRESS" and "DONE".');
+        return;
+      }
+      if (newStatus !== 'IN PROGRESS' && newStatus !== 'DONE') {
+        alert('Permission Denied: Employees can only change status between "IN PROGRESS" and "DONE".');
+        return;
+      }
+    }
+
     // Optimistic update
     setTasks(tasks.map(task => task.id === id ? { ...task, status: newStatus } : task));
     
@@ -294,9 +310,6 @@ export function TaskProvider({ children }) {
       addTask,
       updateTaskStatus,
       deleteTask,
-      startTracking,
-      pauseTracking,
-      stopTracking,
       openNewTaskModal,
       closeNewTaskModal,
       isLoaded
