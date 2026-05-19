@@ -140,7 +140,7 @@ export function TaskProvider({ children }) {
     const { data, error } = await supabase.from('employees').insert([newEmp]).select();
     
     if (error) {
-      alert(`Database Error: ${error.message}. If this is an RLS policy issue, please disable RLS on the employees table.`);
+      alert(`Database Error: ${error.message} (URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || 'placeholder'}). Please check your Vercel Environment Variables.`);
       return null;
     }
 
