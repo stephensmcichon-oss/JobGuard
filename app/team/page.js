@@ -10,6 +10,7 @@ export default function TeamManagement() {
   // Admin Add Employee Form State
   const [empFullName, setEmpFullName] = useState('');
   const [empEmailAddress, setEmpEmailAddress] = useState('');
+  const [empPassword, setEmpPassword] = useState('');
   const [showEmpSuccess, setShowEmpSuccess] = useState(false);
 
   if (!isAdmin) {
@@ -22,15 +23,17 @@ export default function TeamManagement() {
 
   const handleAddEmployee = async (e) => {
     e.preventDefault();
-    if (!empFullName.trim() || !empEmailAddress.trim()) return;
+    if (!empFullName.trim() || !empEmailAddress.trim() || !empPassword.trim()) return;
 
     await addEmployee({
       fullName: empFullName,
-      email: empEmailAddress
+      email: empEmailAddress,
+      password: empPassword
     });
 
     setEmpFullName('');
     setEmpEmailAddress('');
+    setEmpPassword('');
     setShowEmpSuccess(true);
     setTimeout(() => setShowEmpSuccess(false), 4000);
   };
@@ -85,6 +88,18 @@ export default function TeamManagement() {
                 placeholder="e.g. david@taskflow.com"
                 value={empEmailAddress}
                 onChange={(e) => setEmpEmailAddress(e.target.value)}
+                className="input input-bordered w-full bg-base-100/80 text-sm focus:border-success h-11 rounded-xl font-medium shadow-inner"
+                required
+              />
+            </div>
+
+            <div className="form-control w-full gap-1">
+              <label className="label-text text-[11px] font-bold text-base-content/70 uppercase tracking-wider">Temporary Password *</label>
+              <input
+                type="text"
+                placeholder="e.g. tempPass123"
+                value={empPassword}
+                onChange={(e) => setEmpPassword(e.target.value)}
                 className="input input-bordered w-full bg-base-100/80 text-sm focus:border-success h-11 rounded-xl font-medium shadow-inner"
                 required
               />

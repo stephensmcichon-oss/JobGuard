@@ -63,7 +63,8 @@ export function TaskProvider({ children }) {
             fullName: e.full_name,
             email: e.email,
             initials: e.initials,
-            status: e.status
+            status: e.status,
+            password: e.password
           }));
           setEmployees(formattedEmp);
         }
@@ -118,7 +119,7 @@ export function TaskProvider({ children }) {
     }
   };
 
-  const addEmployee = async ({ fullName, email }) => {
+  const addEmployee = async ({ fullName, email, password }) => {
     const nameParts = fullName.trim().split(' ');
     let initials = 'EM';
     if (nameParts.length > 1) {
@@ -131,7 +132,8 @@ export function TaskProvider({ children }) {
       full_name: fullName.trim(),
       email: email.trim(),
       initials,
-      status: 'Active'
+      status: 'Active',
+      password: password
     };
 
     // Optimistic UI (We wait for DB response to get the UUID)
@@ -144,7 +146,8 @@ export function TaskProvider({ children }) {
         fullName: inserted.full_name,
         email: inserted.email,
         initials: inserted.initials,
-        status: inserted.status
+        status: inserted.status,
+        password: inserted.password
       };
       setEmployees(prev => [...prev, uiEmp]);
       return uiEmp;
@@ -167,7 +170,7 @@ export function TaskProvider({ children }) {
     } else {
       // Dynamic auth against Supabase employees
       const matchedEmp = employees.find(emp => emp.email.toLowerCase() === cleanUser);
-      if (matchedEmp && password === 'employee') {
+      if (matchedEmp && (matchedEmp.password === password || password === 'employee')) {
         const userObj = { username: cleanUser, role: 'employee', name: matchedEmp.fullName, initials: matchedEmp.initials };
         setCurrentUser(userObj);
         localStorage.setItem('taskflow-user', JSON.stringify(userObj));
